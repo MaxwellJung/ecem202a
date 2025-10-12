@@ -19,9 +19,33 @@ def main():
     c, y = generate_video(l=1, r=1, noise_variance=0.01, fps=VIDEO_FPS, duration=VIDEO_DURATION)
     t = np.arange(FRAME_COUNT)/VIDEO_FPS
 
-    plt.plot(t, c)
+    fig = plt.figure()
     plt.plot(t, y, '.')
-    plt.show()
+    plt.title("Y")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Pixel Intensity")
+    plt.savefig("out/y.png")
+
+    fig = plt.figure()
+    plt.step(t, c, where='post')
+    plt.title("Coded Light Signal")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Amplitude")
+    plt.savefig("out/c.png")
+
+    fig = plt.figure()
+    plt.step(VIDEO_FPS*np.arange(len(c))/len(c), np.abs(np.fft.fft(c)), where='mid')
+    plt.title("Magnitude Spectrum of C")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Magnitude")
+    plt.savefig("out/c_spectrum_magnitude.png")
+
+    fig = plt.figure()
+    plt.step(VIDEO_FPS*np.arange(len(c))/len(c), np.angle(np.fft.fft(c)), where='mid')
+    plt.title("Phase Spectrum of C")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Phase")
+    plt.savefig("out/c_spectrum_phase.png")
 
 
 def generate_video(l: float, r: float, noise_variance: float, fps: int, duration: int) -> NDArray:
@@ -88,7 +112,6 @@ def generate_nci(w_m: float, w_s: float, size: int) -> NDArray:
     freq_bins[N//2+1:] = np.conjugate(freq_bins[1:N//2])[::-1]
     # set Nyquist component to 0 (or other real value)
     freq_bins[N//2] = 0
-    # print(f'{freq_bins=}')
 
     # generate real-valued signal in time-domain
     x = np.fft.ifft(freq_bins)
