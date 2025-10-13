@@ -14,33 +14,51 @@ def main():
 
     # generate a 10 second NCI video @ 30fps
     VIDEO_FPS = 30
-    VIDEO_DURATION = 10
+    VIDEO_DURATION = 100
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
     c, y = generate_video(l=1, r=1, noise_variance=0.01, fps=VIDEO_FPS, duration=VIDEO_DURATION)
     t = np.arange(FRAME_COUNT)/VIDEO_FPS
 
-    fig = plt.figure()
+    np.save('out/c', c)
+    np.save('out/y', y)
+
+    # Plots for analysis
+    fig = plt.figure(figsize=(16, 9))
     plt.plot(t, y, '.')
     plt.title("Y")
     plt.xlabel("Time (s)")
     plt.ylabel("Pixel Intensity")
     plt.savefig("out/y.png")
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(16, 9))
+    plt.hist(y, bins=100)
+    plt.title("Y Distribution")
+    plt.xlabel("Pixel Intensity")
+    plt.ylabel("Count")
+    plt.savefig("out/y_histogram.png")
+
+    fig = plt.figure(figsize=(16, 9))
     plt.step(t, c, where='post')
     plt.title("Coded Light Signal")
     plt.xlabel("Time (s)")
     plt.ylabel("Amplitude")
     plt.savefig("out/c.png")
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(16, 9))
+    plt.hist(c, bins=100)
+    plt.title("C Distribution")
+    plt.xlabel("Amplitude")
+    plt.ylabel("Count")
+    plt.savefig("out/c_histogram.png")
+
+    fig = plt.figure(figsize=(16, 9))
     plt.step(VIDEO_FPS*np.arange(len(c))/len(c), np.abs(np.fft.fft(c)), where='mid')
     plt.title("Magnitude Spectrum of C")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Magnitude")
     plt.savefig("out/c_spectrum_magnitude.png")
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(16, 9))
     plt.step(VIDEO_FPS*np.arange(len(c))/len(c), np.angle(np.fft.fft(c)), where='mid')
     plt.title("Phase Spectrum of C")
     plt.xlabel("Frequency (Hz)")
