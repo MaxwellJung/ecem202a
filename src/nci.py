@@ -84,7 +84,7 @@ def generate_video(l: float, r: float, noise_variance: float, fps: int, duration
     # noise from camera sensor (photon shot noise)
     n = rng.normal(loc=0, scale=np.sqrt(noise_variance), size=frame_count)
     # noise coded illumination
-    c = generate_nci(w_m=9, w_s=fps, size=frame_count)
+    c = generate_nci(f_m=9, f_s=fps, size=frame_count)
 
     # equation 2 from paper
     y = (l+c)*r + n
@@ -92,7 +92,7 @@ def generate_video(l: float, r: float, noise_variance: float, fps: int, duration
     return c, y
 
 
-def generate_nci(w_m: float, w_s: float, size: int) -> NDArray:
+def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     """Generate code signal; see section 5 from paper.
     Code signal should be random, noise-like, zero-mean, and uncorrelated with each other.
     Create random discrete spectrum, then convert to time-domain signal with inverse FFT.
@@ -100,8 +100,8 @@ def generate_nci(w_m: float, w_s: float, size: int) -> NDArray:
     frequency bins are complex conjugate and mirrored versions of each other.
 
     Args:
-        w_m (float): Maximum bandwidth of signal in Hz
-        w_s (float): Sampling frequency in Hz
+        f_m (float): Maximum bandwidth of signal in Hz
+        f_s (float): Sampling frequency in Hz
         size (int): Length of output array
 
     Returns:
@@ -114,8 +114,8 @@ def generate_nci(w_m: float, w_s: float, size: int) -> NDArray:
     N = 1024
     freq_bins = np.empty(N, dtype=complex)
 
-    nyquist_freq = w_s/2
-    valid_bins = int(N//2*(w_m/nyquist_freq))
+    nyquist_freq = f_s/2
+    valid_bins = int(N//2*(f_m/nyquist_freq))
 
     # randomly generate lower half of freq bins
     phases = rng.uniform(0, 2*np.pi, valid_bins)
@@ -123,7 +123,7 @@ def generate_nci(w_m: float, w_s: float, size: int) -> NDArray:
     freq_bins[1:valid_bins+1] = magnitudes*np.exp(1j*phases)
     # set DC component to 0 (or other real value)
     freq_bins[0] = 0
-    # set freq components outside bandwidth to 0
+    # set freq components outside maximum bandwidth to 0
     freq_bins[valid_bins+1:N//2] = 0
 
     # set upper half of freq bins as mirrored and conjugate version of lower bins
@@ -137,7 +137,7 @@ def generate_nci(w_m: float, w_s: float, size: int) -> NDArray:
     # imaginary components of x are all less than 1e-17, so just discard them
     x = x.real
 
-    # concatenate x's back to back to desired length
+    # create c by concatenating copies of x's
     c = np.tile(x, int(np.ceil(size/N)))
     c = c[:size]
 
