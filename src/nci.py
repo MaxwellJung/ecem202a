@@ -11,10 +11,9 @@ import matplotlib.pyplot as plt
 rng = np.random.default_rng()
 
 def main():
-
-    # generate a 10 second NCI video @ 30fps
+    # generate 60 second NCI video @ 30fps
     VIDEO_FPS = 30
-    VIDEO_DURATION = 100
+    VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
     c, y = generate_video(l=1, r=1, noise_variance=0.01, fps=VIDEO_FPS, duration=VIDEO_DURATION)
     t = np.arange(FRAME_COUNT)/VIDEO_FPS
@@ -22,7 +21,7 @@ def main():
     np.save('out/c', c)
     np.save('out/y', y)
 
-    # Plots for analysis
+    # Plots for debugging
     fig = plt.figure(figsize=(16, 9))
     plt.plot(t, y, '.')
     plt.title("Y")
@@ -111,7 +110,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     # If N is odd, first bin (DC component) is real
     # If N is even, first and middle bins (DC and Nyquist components) are real
     # For now, choose even N
-    N = 1024
+    N = 2**10
     freq_bins = np.empty(N, dtype=complex)
 
     nyquist_freq = f_s/2
