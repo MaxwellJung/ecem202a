@@ -27,22 +27,22 @@ def main():
 
     # Plots for debugging
     fig = plt.figure(figsize=(16, 9))
-    plt.imshow(y[:,:,0], cmap='gray', vmin=0, vmax=255)
+    plt.imshow(y[0], cmap='gray', vmin=0, vmax=255)
     plt.title("Y Frame 0")
     plt.xlabel("Width")
     plt.ylabel("Height")
     plt.savefig("out/y_frame0.png")
 
     fig = plt.figure(figsize=(16, 9))
-    plt.imshow(y[:,:,1], cmap='gray', vmin=0, vmax=255)
+    plt.imshow(y[1], cmap='gray', vmin=0, vmax=255)
     plt.title("Y Frame 1")
     plt.xlabel("Width")
     plt.ylabel("Height")
     plt.savefig("out/y_frame1.png")
 
     fig = plt.figure(figsize=(16, 9))
-    plt.plot(t, y[0,0,:], '.')
-    plt.title("Y[0,0]")
+    plt.plot(t, y[:, 0, 0], '.')
+    plt.title("Pixel(0,0) Intensity")
     plt.xlabel("Time (s)")
     plt.ylabel("Pixel Intensity")
     plt.savefig("out/y.png")
@@ -86,18 +86,23 @@ def main():
 def generate_video(l: float, r: float, noise_variance: float, 
                    width: int, height: int, 
                    fps: int, duration: int) -> tuple[NDArray, NDArray]:
-    """Model of single-pixel video in a static scene with NCI
+    """Model of multi-pixel video in a static scene with NCI
 
     Args:
         l (float): Power of light source
         r (float): Light transport coefficient
         noise_variance (float): Variance of random noise
+        width (int): Video frame width in pixels
+        height (int): Video frame height in pixels
         fps (int): Video frames per second.
         duration (int): Duration of video in seconds.
 
     Returns:
-        tuple[NDArray, NDArray]: array representing noise coded light (c)
-         and pixel intensity over time (y)
+        tuple[NDArray, NDArray]: array representing noise coded light (c)  
+        and pixel intensity over time (y)
+
+        shape of c = (fps * duration)  
+        shape of y = (fps * duration, width, height)
     """
     frame_count = fps*duration
 
@@ -105,12 +110,14 @@ def generate_video(l: float, r: float, noise_variance: float,
     c = generate_nci(f_m=9, f_s=fps, size=frame_count)
 
     # noise from camera sensor (photon shot noise)
-    n = rng.normal(loc=0, scale=np.sqrt(noise_variance), size=(width, height, frame_count))
+    n = rng.normal(loc=0, scale=np.sqrt(noise_variance), size=(frame_count, width, height))
 
     # equation 2 from paper
-    y = (l+c)*r + n
+    # need to transpose n for numpy broadcasting to work
+    y = (l+c)*r + n.T
 
-    return c, y
+    # transpose y so axes becomes (frame_index, width_index, height_index)
+    return c, y.T
 
 
 def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
