@@ -147,7 +147,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
 
     # randomly generate lower half of freq bins
     phases = rng.uniform(0, 2*np.pi, valid_bins)
-    magnitudes = rng.uniform(0, 10000, valid_bins)
+    magnitudes = rng.uniform(0, 100000, valid_bins)
     freq_bins[1:valid_bins+1] = magnitudes*np.exp(1j*phases)
     # set DC component to 0 (or other real value)
     freq_bins[0] = 0
@@ -168,6 +168,21 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     # create c by concatenating copies of x's
     c = np.tile(x, int(np.ceil(size/N)))
     c = c[:size]
+
+    # plots for debugging
+    fig = plt.figure(figsize=(16, 9))
+    plt.step(f_s*np.arange(N)/N, np.abs(freq_bins), where='mid')
+    plt.title("Magnitude Spectrum of x")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Magnitude")
+    plt.savefig("out/x_spectrum_magnitude.png")
+
+    fig = plt.figure(figsize=(16, 9))
+    plt.step(f_s*np.arange(N)/N, np.angle(freq_bins), where='mid')
+    plt.title("Phase Spectrum of x")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Phase")
+    plt.savefig("out/x_spectrum_phase.png")
 
     return c
 
