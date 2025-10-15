@@ -7,6 +7,7 @@ Usage:
 import numpy as np
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
+import cv2
 
 rng = np.random.default_rng()
 
@@ -17,15 +18,21 @@ def main():
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
-    c, y = generate_video(l=128, r=0.5, noise_variance=10,
+    c, y = generate_video(l=128, r=1, noise_variance=10,
                           width=VIDEO_WIDTH, height=VIDEO_HEIGHT,
                           fps=VIDEO_FPS, duration=VIDEO_DURATION)
-    t = np.arange(FRAME_COUNT)/VIDEO_FPS
 
     np.save('out/c', c)
     np.save('out/y', y)
 
+    out = cv2.VideoWriter('out/y.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_WIDTH, VIDEO_HEIGHT), False)
+    for frame in y:
+        out.write(frame.astype(np.uint8).T)
+    out.release()
+
     # Plots for debugging
+    t = np.arange(FRAME_COUNT)/VIDEO_FPS
+
     fig = plt.figure(figsize=(16, 9))
     plt.imshow(y[0], cmap='gray', vmin=0, vmax=255)
     plt.title("Y Frame 0")
