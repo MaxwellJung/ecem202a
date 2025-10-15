@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 def main():
     y = np.load('out/y.npy')
     c = np.load('out/c.npy')
+    # y = np.concat((y[:500], y[1000:], y[500:1000]))
 
     window_size = 1024
     c_prime_windows = sliding_window_view(c, window_size)

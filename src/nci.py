@@ -15,7 +15,7 @@ def main():
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
-    c, y = generate_video(l=1, r=1, noise_variance=0.01, fps=VIDEO_FPS, duration=VIDEO_DURATION)
+    c, y = generate_video(l=128, r=1, noise_variance=0.5, fps=VIDEO_FPS, duration=VIDEO_DURATION)
     t = np.arange(FRAME_COUNT)/VIDEO_FPS
 
     np.save('out/c', c)
@@ -110,7 +110,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     # If N is odd, first bin (DC component) is real
     # If N is even, first and middle bins (DC and Nyquist components) are real
     # For now, choose even N
-    N = 2**10
+    N = 2**20
     freq_bins = np.empty(N, dtype=complex)
 
     nyquist_freq = f_s/2
@@ -118,7 +118,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
 
     # randomly generate lower half of freq bins
     phases = rng.uniform(0, 2*np.pi, valid_bins)
-    magnitudes = rng.uniform(0, 5, valid_bins)
+    magnitudes = rng.uniform(0, 10000, valid_bins)
     freq_bins[1:valid_bins+1] = magnitudes*np.exp(1j*phases)
     # set DC component to 0 (or other real value)
     freq_bins[0] = 0
