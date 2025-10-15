@@ -12,10 +12,14 @@ rng = np.random.default_rng()
 
 def main():
     # generate 60 second NCI video @ 30fps
+    VIDEO_WIDTH = 16
+    VIDEO_HEIGHT = 16
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
-    c, y = generate_video(l=128, r=1, noise_variance=0.5, fps=VIDEO_FPS, duration=VIDEO_DURATION)
+    c, y = generate_video(l=128, r=0.5, noise_variance=10,
+                          width=VIDEO_WIDTH, height=VIDEO_HEIGHT,
+                          fps=VIDEO_FPS, duration=VIDEO_DURATION)
     t = np.arange(FRAME_COUNT)/VIDEO_FPS
 
     np.save('out/c', c)
@@ -23,14 +27,28 @@ def main():
 
     # Plots for debugging
     fig = plt.figure(figsize=(16, 9))
-    plt.plot(t, y, '.')
-    plt.title("Y")
+    plt.imshow(y[:,:,0], cmap='gray', vmin=0, vmax=255)
+    plt.title("Y Frame 0")
+    plt.xlabel("Width")
+    plt.ylabel("Height")
+    plt.savefig("out/y_frame0.png")
+
+    fig = plt.figure(figsize=(16, 9))
+    plt.imshow(y[:,:,1], cmap='gray', vmin=0, vmax=255)
+    plt.title("Y Frame 1")
+    plt.xlabel("Width")
+    plt.ylabel("Height")
+    plt.savefig("out/y_frame1.png")
+
+    fig = plt.figure(figsize=(16, 9))
+    plt.plot(t, y[0,0,:], '.')
+    plt.title("Y[0,0]")
     plt.xlabel("Time (s)")
     plt.ylabel("Pixel Intensity")
     plt.savefig("out/y.png")
 
     fig = plt.figure(figsize=(16, 9))
-    plt.hist(y, bins=100)
+    plt.hist(y.flatten(), bins=100)
     plt.title("Y Distribution")
     plt.xlabel("Pixel Intensity")
     plt.ylabel("Count")
@@ -65,7 +83,9 @@ def main():
     plt.savefig("out/c_spectrum_phase.png")
 
 
-def generate_video(l: float, r: float, noise_variance: float, fps: int, duration: int) -> NDArray:
+def generate_video(l: float, r: float, noise_variance: float, 
+                   width: int, height: int, 
+                   fps: int, duration: int) -> tuple[NDArray, NDArray]:
     """Model of single-pixel video in a static scene with NCI
 
     Args:
@@ -76,14 +96,16 @@ def generate_video(l: float, r: float, noise_variance: float, fps: int, duration
         duration (int): Duration of video in seconds.
 
     Returns:
-        NDArray: array representing pixel intensity over time
+        tuple[NDArray, NDArray]: array representing noise coded light (c)
+         and pixel intensity over time (y)
     """
     frame_count = fps*duration
 
-    # noise from camera sensor (photon shot noise)
-    n = rng.normal(loc=0, scale=np.sqrt(noise_variance), size=frame_count)
     # noise coded illumination
     c = generate_nci(f_m=9, f_s=fps, size=frame_count)
+
+    # noise from camera sensor (photon shot noise)
+    n = rng.normal(loc=0, scale=np.sqrt(noise_variance), size=(width, height, frame_count))
 
     # equation 2 from paper
     y = (l+c)*r + n

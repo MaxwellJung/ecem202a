@@ -10,17 +10,21 @@ import matplotlib.pyplot as plt
 
 def main():
     y = np.load('out/y.npy')
+    VIDEO_WIDTH = y.shape[0]
+    VIDEO_HEIGHT = y.shape[1]
     c = np.load('out/c.npy')
-    # y = np.concat((y[:500], y[1000:], y[500:1000]))
+    # simulate malicious video cut
+    # y = np.concat((y.T[:500], y.T[1000:], y.T[500:1000])).T
 
     window_size = 1024
     c_prime_windows = sliding_window_view(c, window_size)
-    y_windows = sliding_window_view(y, window_size)
+    y_windows = sliding_window_view(y, (1,1,window_size)).squeeze().reshape(VIDEO_WIDTH*VIDEO_HEIGHT, -1, c_prime_windows.shape[1])
 
     print(np.info(c_prime_windows))
     print(np.info(y_windows))
 
-    x = np.dot(c_prime_windows, y_windows.T)
+    x = np.dot(y_windows, c_prime_windows.T).T
+    x = np.mean(x, axis=2)
     print(np.info(x))
 
     fig = plt.figure(figsize=(16, 9))
