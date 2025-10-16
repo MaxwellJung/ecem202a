@@ -7,30 +7,55 @@ Usage:
 import numpy as np
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
+import cv2
 
 rng = np.random.default_rng()
 
 def main():
     # generate 60 second NCI video @ 30fps
+    VIDEO_WIDTH = 16
+    VIDEO_HEIGHT = 16
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
-    c, y = generate_video(l=1, r=1, noise_variance=0.01, fps=VIDEO_FPS, duration=VIDEO_DURATION)
-    t = np.arange(FRAME_COUNT)/VIDEO_FPS
+    c, y = generate_video(l=128, r=1, noise_variance=10,
+                          width=VIDEO_WIDTH, height=VIDEO_HEIGHT,
+                          fps=VIDEO_FPS, duration=VIDEO_DURATION)
 
     np.save('out/c', c)
     np.save('out/y', y)
 
+    out = cv2.VideoWriter('out/y.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_WIDTH, VIDEO_HEIGHT), False)
+    for frame in y:
+        out.write(frame.astype(np.uint8).T)
+    out.release()
+
     # Plots for debugging
+    t = np.arange(FRAME_COUNT)/VIDEO_FPS
+
     fig = plt.figure(figsize=(16, 9))
-    plt.plot(t, y, '.')
-    plt.title("Y")
+    plt.imshow(y[0], cmap='gray', vmin=0, vmax=255)
+    plt.title("Y Frame 0")
+    plt.xlabel("Width")
+    plt.ylabel("Height")
+    plt.savefig("out/y_frame0.png")
+
+    fig = plt.figure(figsize=(16, 9))
+    plt.imshow(y[1], cmap='gray', vmin=0, vmax=255)
+    plt.title("Y Frame 1")
+    plt.xlabel("Width")
+    plt.ylabel("Height")
+    plt.savefig("out/y_frame1.png")
+
+    fig = plt.figure(figsize=(16, 9))
+    plt.plot(t, y[:, 0, 0], '.')
+    plt.title("Pixel(0,0) Intensity")
     plt.xlabel("Time (s)")
     plt.ylabel("Pixel Intensity")
     plt.savefig("out/y.png")
 
     fig = plt.figure(figsize=(16, 9))
-    plt.hist(y, bins=100)
+    plt.hist(y.flatten(), bins=100)
     plt.title("Y Distribution")
     plt.xlabel("Pixel Intensity")
     plt.ylabel("Count")
@@ -65,30 +90,41 @@ def main():
     plt.savefig("out/c_spectrum_phase.png")
 
 
-def generate_video(l: float, r: float, noise_variance: float, fps: int, duration: int) -> NDArray:
-    """Model of single-pixel video in a static scene with NCI
+def generate_video(l: float, r: float, noise_variance: float, 
+                   width: int, height: int, 
+                   fps: int, duration: int) -> tuple[NDArray, NDArray]:
+    """Model of multi-pixel video in a static scene with NCI
 
     Args:
         l (float): Power of light source
         r (float): Light transport coefficient
         noise_variance (float): Variance of random noise
+        width (int): Video frame width in pixels
+        height (int): Video frame height in pixels
         fps (int): Video frames per second.
         duration (int): Duration of video in seconds.
 
     Returns:
-        NDArray: array representing pixel intensity over time
+        tuple[NDArray, NDArray]: array representing noise coded light (c)  
+        and pixel intensity over time (y)
+
+        shape of c = (fps * duration)  
+        shape of y = (fps * duration, width, height)
     """
     frame_count = fps*duration
 
-    # noise from camera sensor (photon shot noise)
-    n = rng.normal(loc=0, scale=np.sqrt(noise_variance), size=frame_count)
     # noise coded illumination
     c = generate_nci(f_m=9, f_s=fps, size=frame_count)
 
-    # equation 2 from paper
-    y = (l+c)*r + n
+    # noise from camera sensor (photon shot noise)
+    n = rng.normal(loc=0, scale=np.sqrt(noise_variance), size=(frame_count, width, height))
 
-    return c, y
+    # equation 2 from paper
+    # need to transpose n for numpy broadcasting to work
+    y = (l+c)*r + n.T
+
+    # transpose y so axes becomes (frame_index, width_index, height_index)
+    return c, y.T
 
 
 def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
@@ -110,7 +146,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     # If N is odd, first bin (DC component) is real
     # If N is even, first and middle bins (DC and Nyquist components) are real
     # For now, choose even N
-    N = 2**10
+    N = 2**20
     freq_bins = np.empty(N, dtype=complex)
 
     nyquist_freq = f_s/2
@@ -118,7 +154,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
 
     # randomly generate lower half of freq bins
     phases = rng.uniform(0, 2*np.pi, valid_bins)
-    magnitudes = rng.uniform(0, 5, valid_bins)
+    magnitudes = rng.uniform(0, 100000, valid_bins)
     freq_bins[1:valid_bins+1] = magnitudes*np.exp(1j*phases)
     # set DC component to 0 (or other real value)
     freq_bins[0] = 0
@@ -139,6 +175,21 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     # create c by concatenating copies of x's
     c = np.tile(x, int(np.ceil(size/N)))
     c = c[:size]
+
+    # plots for debugging
+    fig = plt.figure(figsize=(16, 9))
+    plt.step(f_s*np.arange(N)/N, np.abs(freq_bins), where='mid')
+    plt.title("Magnitude Spectrum of x")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Magnitude")
+    plt.savefig("out/x_spectrum_magnitude.png")
+
+    fig = plt.figure(figsize=(16, 9))
+    plt.step(f_s*np.arange(N)/N, np.angle(freq_bins), where='mid')
+    plt.title("Phase Spectrum of x")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Phase")
+    plt.savefig("out/x_spectrum_phase.png")
 
     return c
 
