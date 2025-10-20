@@ -18,7 +18,7 @@ def main():
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
-    c, y = generate_video(l=128, r=1, noise_variance=10,
+    c, y = generate_video(l=128, r=1, noise_variance=1,
                           width=VIDEO_WIDTH, height=VIDEO_HEIGHT,
                           fps=VIDEO_FPS, duration=VIDEO_DURATION)
 
