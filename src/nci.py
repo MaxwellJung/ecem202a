@@ -141,9 +141,11 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     """
 
     N = 2**8
+    C_AMPLITUDE = 64
     # create c by concatenating copies of x's
     c = np.concat([generate_random_signal(f_m, f_s, N) for i in range(int(np.ceil(size/N)))])
     c = c[:size]
+    c = C_AMPLITUDE*c
 
     return c
 
@@ -173,7 +175,7 @@ def generate_random_signal(f_m: float, f_s: float, N: int) -> NDArray:
 
     # randomly generate lower half of freq bins
     phases = rng.uniform(0, 2*np.pi, valid_bins)
-    magnitudes = rng.uniform(0, 2*N, valid_bins)
+    magnitudes = rng.uniform(0, 1, valid_bins)
     freq_bins[1:valid_bins+1] = magnitudes*np.exp(1j*phases)
     # set DC component to 0 (or other real value)
     freq_bins[0] = 0
