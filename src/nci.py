@@ -141,7 +141,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     """
 
     N = 2**8
-    C_AMPLITUDE = 64
+    C_AMPLITUDE = 256
     # create c by concatenating copies of x's
     c = np.concat([generate_random_signal(f_m, f_s, N) for i in range(int(np.ceil(size/N)))])
     c = c[:size]
