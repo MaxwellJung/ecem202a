@@ -1,4 +1,4 @@
-"""Simulation of single-pixel video in a static scene illuminated by one NCI light source.
+"""Simulation of greyscale video in a static scene illuminated by one NCI light source.
 
 Usage:
     python3 ./src/nci.py
@@ -130,9 +130,6 @@ def generate_video(l: float, r: float, noise_variance: float,
 def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     """Generate code signal; see section 5 from paper.
     Code signal should be random, noise-like, zero-mean, and uncorrelated with each other.
-    Create random discrete spectrum, then convert to time-domain signal with inverse FFT.
-    Ensure time-domain signal is real by constructing spectrum such that lower and upper
-    frequency bins are complex conjugate and mirrored versions of each other.
 
     Args:
         f_m (float): Maximum bandwidth of signal in Hz
@@ -143,18 +140,40 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
         NDArray: Array representing noise coded light intensity over time
     """
 
+    N = 2**8
+    # create c by concatenating copies of x's
+    c = np.concat([generate_random_signal(f_m, f_s, N) for i in range(int(np.ceil(size/N)))])
+    c = c[:size]
+
+    return c
+
+
+def generate_random_signal(f_m: float, f_s: float, N: int) -> NDArray:
+    """ Generate random signal with maximum bandwidth of f_m.
+    Create random discrete spectrum, then convert to time-domain signal using inverse FFT.
+    Ensure time-domain signal is real by constructing spectrum such that lower and upper
+    frequency bins are complex conjugate and mirrored versions of each other.
+
+    Args:
+        f_m (float): Maximum bandwidth of signal in Hz
+        f_s (float): Sampling frequency in Hz
+        N (int): Number of FFT bins
+
+    Returns:
+        NDArray: _description_
+    """
     # If N is odd, first bin (DC component) is real
     # If N is even, first and middle bins (DC and Nyquist components) are real
     # For now, choose even N
-    N = 2**20
-    freq_bins = np.empty(N, dtype=complex)
 
     nyquist_freq = f_s/2
     valid_bins = int(N//2*(f_m/nyquist_freq))
 
+    freq_bins = np.empty(N, dtype=complex)
+
     # randomly generate lower half of freq bins
     phases = rng.uniform(0, 2*np.pi, valid_bins)
-    magnitudes = rng.uniform(0, 100000, valid_bins)
+    magnitudes = rng.uniform(0, 2*N, valid_bins)
     freq_bins[1:valid_bins+1] = magnitudes*np.exp(1j*phases)
     # set DC component to 0 (or other real value)
     freq_bins[0] = 0
@@ -172,26 +191,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
     # imaginary components of x are all less than 1e-17, so just discard them
     x = x.real
 
-    # create c by concatenating copies of x's
-    c = np.tile(x, int(np.ceil(size/N)))
-    c = c[:size]
-
-    # plots for debugging
-    fig = plt.figure(figsize=(16, 9))
-    plt.step(f_s*np.arange(N)/N, np.abs(freq_bins), where='mid')
-    plt.title("Magnitude Spectrum of x")
-    plt.xlabel("Frequency (Hz)")
-    plt.ylabel("Magnitude")
-    plt.savefig("out/x_spectrum_magnitude.png")
-
-    fig = plt.figure(figsize=(16, 9))
-    plt.step(f_s*np.arange(N)/N, np.angle(freq_bins), where='mid')
-    plt.title("Phase Spectrum of x")
-    plt.xlabel("Frequency (Hz)")
-    plt.ylabel("Phase")
-    plt.savefig("out/x_spectrum_phase.png")
-
-    return c
+    return x
 
 
 if __name__ == '__main__':
