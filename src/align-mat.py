@@ -12,14 +12,15 @@ def main():
     y = np.load('out/y.npy')
     VIDEO_WIDTH = y.shape[1]
     VIDEO_HEIGHT = y.shape[2]
+    VIDEO_CHANNEL = y.shape[3]
     c = np.load('out/c.npy')
     # simulate malicious video cut
-    y = np.concat((y[:500], y[700:]))
+    # y = np.concat((y[:500], y[700:]))
 
     window_size = 256
     c_prime_windows = sliding_window_view(c, window_size)
     # c_prime_windows axes = (window_index, sample_index)
-    y_windows = sliding_window_view(y, (window_size,1,1)).squeeze().reshape(-1, VIDEO_WIDTH*VIDEO_HEIGHT, window_size)
+    y_windows = sliding_window_view(y, (window_size,1,1,1)).squeeze().reshape(-1, VIDEO_WIDTH*VIDEO_HEIGHT*VIDEO_CHANNEL, window_size)
     # rearrange y_windows axes to (pixel_index, window_index, sample_index)
     y_windows = y_windows.transpose((1, 0, 2))
 
