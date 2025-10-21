@@ -8,7 +8,6 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 import matplotlib.pyplot as plt
 import torch
-import os
 import time
 
 def main():
@@ -23,19 +22,19 @@ def main():
 
     start_time = time.time()
 
-    y = np.load('../out/y.npy')
+    y = np.load('out/y.npy')
     VIDEO_WIDTH = y.shape[1]
     VIDEO_HEIGHT = y.shape[2]
-    c = np.load('../out/c.npy')
+    c = np.load('out/c.npy')
     
     # Simulate malicious video cut
     y = np.concatenate((y[:500], y[700:]))
 
     window_size = 256
     print("Creating sliding windows...")
-    c_prime_windows = sliding_window_view(c, window_size)
+    c_prime_windows = sliding_window_view(c, window_size, writeable=True)
     # c_prime_windows axes = (window_index, sample_index)
-    y_windows = sliding_window_view(y, (window_size, 1, 1)).squeeze().reshape(-1, VIDEO_WIDTH * VIDEO_HEIGHT, window_size)
+    y_windows = sliding_window_view(y, (window_size, 1, 1), writeable=True).squeeze().reshape(-1, VIDEO_WIDTH * VIDEO_HEIGHT, window_size)
     # rearrange y_windows axes to (pixel_index, window_index, sample_index)
     y_windows = y_windows.transpose((1, 0, 2))
 
@@ -62,8 +61,8 @@ def main():
     plt.title("Alignment Matrix (GPU-Accelerated)")
     plt.xlabel("Y index")
     plt.ylabel("C index")
-    plt.savefig("../out/align-mat.png")
-    print("Saved alignment matrix to ../out/align-mat.png")
+    plt.savefig("out/align-mat.png")
+    print("Saved alignment matrix to out/align-mat.png")
 
 if __name__ == '__main__':
     main()
