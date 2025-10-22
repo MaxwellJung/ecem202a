@@ -13,8 +13,8 @@ rng = np.random.default_rng()
 
 def main():
     # generate 60 second NCI video @ 30fps
-    VIDEO_WIDTH = 16
-    VIDEO_HEIGHT = 16
+    VIDEO_WIDTH = 256
+    VIDEO_HEIGHT = 256
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
@@ -163,7 +163,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
         NDArray: Array representing noise coded light intensity over time
     """
 
-    N = 2**10
+    N = 16
     C_AMPLITUDE = 1
     # create c by concatenating copies of x's
     c = np.concat([generate_random_signal(f_m, f_s, N) for i in range(int(np.ceil(size/N)))])
