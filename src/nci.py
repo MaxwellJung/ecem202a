@@ -1,4 +1,4 @@
-"""Simulation of greyscale video in a static scene illuminated by one NCI light source.
+"""Simulation of RGB colored video in a static scene illuminated by one NCI light source.
 
 Usage:
     python3 ./src/nci.py
@@ -13,35 +13,42 @@ rng = np.random.default_rng()
 
 def main():
     # generate 60 second NCI video @ 30fps
-    VIDEO_WIDTH = 16
-    VIDEO_HEIGHT = 16
+    VIDEO_WIDTH = 256
+    VIDEO_HEIGHT = 256
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
-    c, y = generate_video(l=128, r=1, noise_variance=10,
+    y, c, r, n = generate_video(l=1, noise_variance=0.01**2,
                           width=VIDEO_WIDTH, height=VIDEO_HEIGHT,
                           fps=VIDEO_FPS, duration=VIDEO_DURATION)
-
+    c = c[:, 0, 0, 0]
     np.save('out/c', c)
     np.save('out/y', y)
 
-    out = cv2.VideoWriter('out/y.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_WIDTH, VIDEO_HEIGHT), False)
-    for frame in y:
-        out.write(frame.astype(np.uint8).T)
+    out = cv2.VideoWriter('out/y.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_HEIGHT, VIDEO_WIDTH), True)
+    for frame in 255*y:
+        out.write(frame.astype(np.uint8))
     out.release()
 
     # Plots for debugging
     t = np.arange(FRAME_COUNT)/VIDEO_FPS
 
     fig = plt.figure(figsize=(16, 9))
-    plt.imshow(y[0], cmap='gray', vmin=0, vmax=255)
+    plt.imshow(r[0])
+    plt.title("Static Scene")
+    plt.xlabel("Width")
+    plt.ylabel("Height")
+    plt.savefig("out/r.png")
+
+    fig = plt.figure(figsize=(16, 9))
+    plt.imshow(y[0])
     plt.title("Y Frame 0")
     plt.xlabel("Width")
     plt.ylabel("Height")
     plt.savefig("out/y_frame0.png")
 
     fig = plt.figure(figsize=(16, 9))
-    plt.imshow(y[1], cmap='gray', vmin=0, vmax=255)
+    plt.imshow(y[1])
     plt.title("Y Frame 1")
     plt.xlabel("Width")
     plt.ylabel("Height")
@@ -89,15 +96,21 @@ def main():
     plt.ylabel("Phase")
     plt.savefig("out/c_spectrum_phase.png")
 
+    fig = plt.figure(figsize=(16, 9))
+    plt.hist(n.flatten(), bins=100)
+    plt.title("Noise Distribution")
+    plt.xlabel("Amplitude")
+    plt.ylabel("Count")
+    plt.savefig("out/n_histogram.png")
 
-def generate_video(l: float, r: float, noise_variance: float, 
+
+def generate_video(l: float, noise_variance: float, 
                    width: int, height: int, 
                    fps: int, duration: int) -> tuple[NDArray, NDArray]:
     """Model of multi-pixel video in a static scene with NCI
 
     Args:
         l (float): Power of light source
-        r (float): Light transport coefficient
         noise_variance (float): Variance of random noise
         width (int): Video frame width in pixels
         height (int): Video frame height in pixels
@@ -105,26 +118,36 @@ def generate_video(l: float, r: float, noise_variance: float,
         duration (int): Duration of video in seconds.
 
     Returns:
-        tuple[NDArray, NDArray]: array representing noise coded light (c)  
-        and pixel intensity over time (y)
+        tuple[NDArray, NDArray, NDArray, NDArray]: array representing
+        pixel intensity over time (y), 
+        noise coded light (c), 
+        light transport coefficient (r), 
+        and photon shot noise (n)
 
-        shape of c = (fps * duration)  
-        shape of y = (fps * duration, width, height)
+        shape of y = (fps * duration, width, height, channel)
+        shape of c = (fps * duration, width, height, channel)
+        shape of r = (fps * duration, width, height, channel)
+        shape of n = (fps * duration, width, height, channel)
     """
     frame_count = fps*duration
+    l = np.broadcast_to(l, (frame_count, width, height, 3))
 
     # noise coded illumination
     c = generate_nci(f_m=9, f_s=fps, size=frame_count)
+    c = np.broadcast_to(c, (width, height, 3, frame_count))
+    c = c.transpose((3, 0, 1, 2))
+
+    # random static scene (light transport coefficient)
+    r = rng.uniform(low=0.25, high=0.75, size=(width, height, 3))
+    r = np.broadcast_to(r, (frame_count, width, height, 3))
 
     # noise from camera sensor (photon shot noise)
-    n = rng.normal(loc=0, scale=np.sqrt(noise_variance), size=(frame_count, width, height))
+    n = rng.normal(loc=0, scale=np.sqrt(noise_variance), size=(frame_count, width, height, 3))
 
     # equation 2 from paper
-    # need to transpose n for numpy broadcasting to work
-    y = (l+c)*r + n.T
+    y = (l+c)*r + n
 
-    # transpose y so axes becomes (frame_index, width_index, height_index)
-    return c, y.T
+    return y, c, r, n
 
 
 def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
@@ -140,8 +163,8 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
         NDArray: Array representing noise coded light intensity over time
     """
 
-    N = 2**8
-    C_AMPLITUDE = 256
+    N = 16
+    C_AMPLITUDE = 1
     # create c by concatenating copies of x's
     c = np.concat([generate_random_signal(f_m, f_s, N) for i in range(int(np.ceil(size/N)))])
     c = c[:size]
