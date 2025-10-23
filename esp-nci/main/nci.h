@@ -6,6 +6,7 @@
 #include "esp_random.h"
 #include <stdint.h>
 #include <float.h>
+#include <math.h>
 
 void generate_code(float* freq_bins, float f_m, float f_s, uint16_t N)
 {
@@ -15,8 +16,10 @@ void generate_code(float* freq_bins, float f_m, float f_s, uint16_t N)
     // randomly generate lower half of freq bins
     for (int i = 2; i < (valid_bins*2)+2; i += 2)
     {
-        freq_bins[i] = (float) esp_random() / UINT32_MAX;       // real components
-        freq_bins[i+1] = (float) esp_random() / UINT32_MAX;     // imaginary components
+        float magnitude = (float) esp_random() / UINT32_MAX;
+        float phase = (float) esp_random() / UINT32_MAX * (2*M_PI);
+        freq_bins[i] = magnitude * cos(phase);                          // real component
+        freq_bins[i+1] = magnitude * sin(phase);                        // imaginary component
     }
     // DC component
     freq_bins[0] = 0;
