@@ -43,10 +43,8 @@ void generate_code(float* freq_bins, float f_m, float f_s, uint16_t N)
     freq_bins[N+1] = 0;
 
     // generate real-valued signal in time domain
-    rfft_init(N);
-    irfft(freq_bins, N);
-    // separate real and imaginary components; real components are elements 0...N-1, imaginary components are elements N...2*N-1
-    dsps_cplx2reC_fc32(freq_bins, N);
+    fft_init(N);
+    ifft(freq_bins, N);
 }
 
 void normalize_code(float* c, uint16_t* c_normalized, uint16_t range, uint16_t N)
@@ -56,15 +54,15 @@ void normalize_code(float* c, uint16_t* c_normalized, uint16_t range, uint16_t N
 
     for (uint16_t i = 0; i < N; ++i)
     {
-        c_max = c[i] > c_max ? c[i] : c_max;
-        c_min = c[i] < c_min ? c[i] : c_min;
+        c_max = c[2*i] > c_max ? c[2*i] : c_max;
+        c_min = c[2*i] < c_min ? c[2*i] : c_min;
     }
 
     float c_range = c_max - c_min;
 
     for (uint16_t i = 0; i < N; ++i)
     {
-        c_normalized[i] = ((c[i] - c_min) / c_range) * range;
+        c_normalized[i] = ((c[2*i] - c_min) / c_range) * range;
     }
 }
 

@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.espIdfPathWin": "C:\\Users\\wenta\\esp\\v5.5.1\\esp-idf",
-  "idf.pythonInstallPath": "C:\\Users\\wenta\\.espressif\\tools\\idf-python\\3.11.2\\python.exe",
+  "idf.pythonInstallPath": "/opt/homebrew/bin/python3",
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
   ],
@@ -16,5 +16,12 @@
     "--query-driver=C:\\Users\\wenta\\.espressif\\tools\\xtensa-esp-elf\\esp-14.2.0_20241119\\xtensa-esp-elf\\bin\\xtensa-esp32-elf-gcc.exe",
     "--compile-commands-dir=${workspaceFolder}\\build"
   ],
-  "idf.flashType": "UART"
+  "idf.flashType": "JTAG",
+  "idf.port": "/dev/tty.usbmodem112101",
+  "files.associations": {
+    "array": "c",
+    "string": "c",
+    "string_view": "c",
+    "span": "c"
+  }
 }

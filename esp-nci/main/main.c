@@ -5,6 +5,7 @@
 static const char* TAG = "esp-nci";
 
 #define C_LENGTH 1024
+#define C_MAX_FREQ_HZ 9
 
 #define PWM_GPIO            1
 #define PWM_FREQUENCY_HZ    30
@@ -93,7 +94,7 @@ void timer_setup(void)
 
 void app_main(void)
 {
-    generate_code(c, 9, PWM_FREQUENCY_HZ, C_LENGTH);
+    generate_code(c, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
     normalize_code(c, c_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
     timer_setup();
 

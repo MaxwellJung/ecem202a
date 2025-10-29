@@ -5,46 +5,32 @@
 
 #include "esp_dsp.h"
 
-void rfft_init(int n_reals) {
+void fft_init(int n) {
     dsps_fft2r_deinit_fc32();
-    dsps_fft4r_deinit_fc32();
-    dsps_fft2r_init_fc32(NULL, n_reals >> 1);
-    dsps_fft4r_init_fc32(NULL, n_reals >> 1);  // 4r is used for BOTH radix-2 and radix-4 FFTs!
+    dsps_fft2r_init_fc32(NULL, n);
 }
 
-void _rfft_core(float *x, int n) {
-    if (n & 0xAAAAAAAA) {  // n is a power of 4
-        dsps_fft4r_fc32(x, n);
-        dsps_bit_rev4r_fc32(x, n);
-    } else {
-        dsps_fft2r_fc32(x, n);
-        dsps_bit_rev2r_fc32(x, n);
-    }
+void fft(float *x, int n) {
+    // Use dsps_fft2r_fc32_ansi because dsps_fft2r_fc32 is bugged.
+
+    // dsps_fft2r_fc32 calls assembly version of fft optimized for
+    // esp32s3, but the fft outputs are incorrect.
+    // Likely bug introduced in one of the past commits
+    // https://github.com/espressif/esp-dsp/blob/master/modules/fft/float/dsps_fft2r_fc32_aes3_.S
+    dsps_fft2r_fc32_ansi(x, n);
+    dsps_bit_rev2r_fc32(x, n);
 }
 
 // complex conjugate of n complex numbers as pairs of floats (real, imag); operates in-place
 void _conj(float *x, int n) { for (int i = 0; i < n; i++) { x[2*i+1] = -x[2*i+1]; } }
 
-void rfft(float *x, int n) {
-    // x has n real values or n/2 complex values, n must be a power of 2
-    _rfft_core(x, n >> 1);
-    dsps_cplx2real_fc32(x, n >> 1);
-}
+void ifft(float *x, int n) {
+    // Compute Inverse FFT using FFT
+    // See https://dsp.stackexchange.com/questions/36082/calculate-ifft-using-only-fft
 
-void irfft(float *x, int n) {
-    // x has n complex values or n*2 real values, n must be a power of 2
-    float re = x[0], im = x[1];
-
-    _conj(x, n);               // conjugate the input for IFFT
-    dsps_cplx2real_fc32(x, n); // reverse the post-processing (although not quite right)
-
-    // Fix issues with `dsps_cplx2real_fc32()`
-    x[0] = (re + im) * 0.5;  // fixes even values (and helps odd values) [DC component]
-    x[1] = (im - re) * 0.5;  // fixes odd values [Nyquist component]
-
-    _rfft_core(x, n);  // perform the FFT
-
-    _conj(x, n); // fix the sign of every other real value
+    _conj(x, n); // 1. Complex conjugate the given sequence that we want to inverse DFT
+    fft(x, n);   // 2. Calculate its forward DFT
+    _conj(x, n); // 3. Calculate complex conjugate of the result
 
     // Scale the output by 1/n
     float scale = 1.0f / n;
