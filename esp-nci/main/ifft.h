@@ -11,13 +11,7 @@ void fft_init(int n) {
 }
 
 void fft(float *x, int n) {
-    // Use dsps_fft2r_fc32_ansi because dsps_fft2r_fc32 is bugged.
-
-    // dsps_fft2r_fc32 calls assembly version of fft optimized for
-    // esp32s3, but the fft outputs are incorrect.
-    // Likely bug introduced in one of the past commits
-    // https://github.com/espressif/esp-dsp/blob/master/modules/fft/float/dsps_fft2r_fc32_aes3_.S
-    dsps_fft2r_fc32_ansi(x, n);
+    dsps_fft2r_fc32(x, n);
     dsps_bit_rev2r_fc32(x, n);
 }
 

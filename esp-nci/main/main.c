@@ -12,7 +12,9 @@ static const char* TAG = "esp-nci";
 #define TIMER_RESOLUTION_HZ 1000000                                 // 1 MHz, 1 us per tick
 #define TIMER_PERIOD_TICKS  TIMER_RESOLUTION_HZ / PWM_FREQUENCY_HZ  // ~33333 ticks
 
-static float    c[C_LENGTH*2];                                      // first half real, second half imaginary
+// input to FFT must be aligned to 64-bit (8 byte) boundary
+__attribute__((aligned(8)))
+static float    c[C_LENGTH*2];  // first half real, second half imaginary
 static uint16_t c_normalized[C_LENGTH];
 static uint16_t c_index;
 
