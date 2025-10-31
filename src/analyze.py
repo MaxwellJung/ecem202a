@@ -23,16 +23,17 @@ print(f"Using device: {device}")
 def main():
     c = np.load('out/c.npy')
     y = np.load('out/y.npy')
-    VIDEO_FPS = 30
+    VIDEO_LENGTH = y.shape[0]
     VIDEO_WIDTH = y.shape[1]
     VIDEO_HEIGHT = y.shape[2]
-    
+
     # Simulate malicious video cut
-    y = np.concatenate((y[:500], y[700:]))
+    y = np.concatenate((y[:VIDEO_LENGTH//4], y[2*VIDEO_LENGTH//4:]))
     # Simulate malicious photoshop (edit in a grey square in the middle)
-    y[100:500, VIDEO_WIDTH//4:3*VIDEO_WIDTH//4, VIDEO_HEIGHT//4:3*VIDEO_HEIGHT//4] = 0.5
+    y[0:VIDEO_LENGTH//8, VIDEO_WIDTH//4:VIDEO_WIDTH//2, VIDEO_HEIGHT//4:VIDEO_HEIGHT//2] = 0.5
 
     # export edited video
+    VIDEO_FPS = 30
     out = cv2.VideoWriter('out/y_edited.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_HEIGHT, VIDEO_WIDTH), True)
     for frame in 255*y:
         out.write(frame.astype(np.uint8))
