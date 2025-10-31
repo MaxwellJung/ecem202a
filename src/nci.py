@@ -13,8 +13,8 @@ rng = np.random.default_rng()
 
 def main():
     # generate 60 second NCI video @ 30fps
-    VIDEO_WIDTH = 256
-    VIDEO_HEIGHT = 256
+    VIDEO_WIDTH = 16
+    VIDEO_HEIGHT = 16
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
@@ -38,7 +38,7 @@ def main():
     plt.title("Static Scene")
     plt.xlabel("Width")
     plt.ylabel("Height")
-    plt.savefig("out/r.png")
+    plt.savefig("out/r_true.png")
 
     fig = plt.figure(figsize=(16, 9))
     plt.imshow(y[0])
