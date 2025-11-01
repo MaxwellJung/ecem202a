@@ -26,7 +26,7 @@ def main():
     np.save('out/y', y)
 
     out = cv2.VideoWriter('out/y.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_HEIGHT, VIDEO_WIDTH), True)
-    for frame in 255*y:
+    for frame in (255*y).clip(min=0, max=255):
         out.write(frame.astype(np.uint8))
     out.release()
 

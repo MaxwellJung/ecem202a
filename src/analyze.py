@@ -35,7 +35,7 @@ def main():
     # export edited video
     VIDEO_FPS = 30
     out = cv2.VideoWriter('out/y_edited.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_HEIGHT, VIDEO_WIDTH), True)
-    for frame in 255*y:
+    for frame in (255*y).clip(min=0, max=255):
         out.write(frame.astype(np.uint8))
     out.release()
 
@@ -66,7 +66,7 @@ def main():
     print("Saved code image to out/r_estimate.png")
 
     out = cv2.VideoWriter('out/r_estimate.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_HEIGHT, VIDEO_WIDTH), True)
-    for frame in 255*r:
+    for frame in (255*r).clip(min=0, max=255):
         out.write(frame.astype(np.uint8))
     out.release()
     print("Saved code video to out/r_estimate.mp4")
