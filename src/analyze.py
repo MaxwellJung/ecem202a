@@ -48,7 +48,7 @@ def main():
 
     fig = plt.figure(figsize=(16, 9))
     plt.matshow(align_mat)
-    plt.title("Alignment Matrix (GPU-Accelerated)")
+    plt.title("Alignment Matrix")
     plt.xlabel("Y index")
     plt.ylabel("C index")
     plt.savefig("out/align-mat.png")
