@@ -1,33 +1,38 @@
 #include "driver/mcpwm_prelude.h"
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "nci.h"
+#include "fifo.h"
+#include "config.h"
+#include "string.h"
 
 static const char* TAG = "esp-nci";
-
-#define C_LENGTH 1024
-#define C_MAX_FREQ_HZ 9
-
-#define PWM_GPIO            1
-#define PWM_FREQUENCY_HZ    30
-#define TIMER_RESOLUTION_HZ 1000000                                 // 1 MHz, 1 us per tick
-#define TIMER_PERIOD_TICKS  TIMER_RESOLUTION_HZ / PWM_FREQUENCY_HZ  // ~33333 ticks
 
 // input to FFT must be aligned to 64-bit (8 byte) boundary
 __attribute__((aligned(8)))
 static float    c[C_LENGTH*2];  // first half real, second half imaginary
 static uint16_t c_normalized[C_LENGTH];
-static uint16_t c_index;
 
 static mcpwm_timer_handle_t s_timer;
 static mcpwm_oper_handle_t  s_operator;
 static mcpwm_cmpr_handle_t  s_comparator;
 static mcpwm_gen_handle_t   s_generator;
 
+// Current block being played from FIFO
+static uint16_t current_block[C_LENGTH];
+static uint16_t current_index = 0;
+
 static inline uint16_t get_next_duty(void)
 {
-    uint16_t c_value = c_normalized[c_index];
-    if (++c_index == C_LENGTH)
-        c_index = 0;
+    uint16_t c_value = current_block[current_index];
+    current_index++;
+    
+    if (current_index >= C_LENGTH) {
+        current_index = 0;
+        fifo_read(current_block);
+    }
+    
     return c_value;
 }
 
@@ -94,11 +99,38 @@ void timer_setup(void)
     ESP_ERROR_CHECK(mcpwm_timer_start_stop(s_timer, MCPWM_TIMER_START_NO_STOP));
 }
 
+// push to FIFO
+void fifo_push(void *pvParameter)
+{
+    (void)pvParameter;
+    
+    while (1) {
+
+        generate_code(c, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
+        normalize_code(c, c_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
+        
+        if (fifo_write(c_normalized)) {
+            ESP_LOGI(TAG, "Generated and pushed new block (available: %lu)", fifo_availble_blocks());
+        } else {
+            ESP_LOGW(TAG, "FIFO full, waiting for PWM to consume blocks");
+            vTaskDelay(pdMS_TO_TICKS(FIFO_RETRY_DELAY_MS));  // Wait and retry
+        }
+    }
+    
+    vTaskDelete(NULL);
+}
+
 void app_main(void)
 {
+    fifo_init();
+    
     generate_code(c, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
     normalize_code(c, c_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
+    memcpy(current_block, c_normalized, sizeof(c_normalized));
+    
     timer_setup();
 
+    xTaskCreate(fifo_push, "fifo_push", 4096, NULL, 5, NULL);
+    
     ESP_LOGI(TAG, "Setup complete");
 }
