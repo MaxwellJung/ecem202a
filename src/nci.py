@@ -13,8 +13,8 @@ rng = np.random.default_rng()
 
 def main():
     # generate 60 second NCI video @ 30fps
-    VIDEO_WIDTH = 256
-    VIDEO_HEIGHT = 256
+    VIDEO_WIDTH = 16
+    VIDEO_HEIGHT = 16
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
@@ -26,7 +26,7 @@ def main():
     np.save('out/y', y)
 
     out = cv2.VideoWriter('out/y.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_HEIGHT, VIDEO_WIDTH), True)
-    for frame in 255*y:
+    for frame in (255*y).clip(min=0, max=255):
         out.write(frame.astype(np.uint8))
     out.release()
 
@@ -38,7 +38,7 @@ def main():
     plt.title("Static Scene")
     plt.xlabel("Width")
     plt.ylabel("Height")
-    plt.savefig("out/r.png")
+    plt.savefig("out/r_true.png")
 
     fig = plt.figure(figsize=(16, 9))
     plt.imshow(y[0])
