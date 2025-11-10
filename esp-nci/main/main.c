@@ -1,6 +1,7 @@
 #include "driver/mcpwm_prelude.h"
 #include "esp_log.h"
 #include "nci.h"
+#include "sd.h"
 
 static const char* TAG = "esp-nci";
 
@@ -99,6 +100,13 @@ void app_main(void)
     generate_code(c, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
     normalize_code(c, c_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
     timer_setup();
-
     ESP_LOGI(TAG, "Setup complete");
+
+    setup_sd();
+
+    const char *c_file_path = MOUNT_POINT"/c_normalized.bin";
+    ESP_LOGI(TAG, "c_normalized: [%d %d %d %d ...]", c_normalized[0], c_normalized[1], c_normalized[2], c_normalized[3]);
+    export_binary(c_file_path, (char*)c_normalized, sizeof(c_normalized));
+
+    cleanup_sd();
 }
