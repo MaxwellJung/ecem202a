@@ -1,9 +1,13 @@
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "driver/mcpwm_prelude.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "nci.h"
 #include "sd.h"
 
 static const char* TAG = "esp-nci";
+static const char* c_file_path = MOUNT_POINT"/c_normalized.bin";
 
 #define C_LENGTH 1024
 #define C_MAX_FREQ_HZ 9
@@ -15,9 +19,21 @@ static const char* TAG = "esp-nci";
 
 // input to FFT must be aligned to 64-bit (8 byte) boundary
 __attribute__((aligned(8)))
-static float    c[C_LENGTH*2];  // first half real, second half imaginary
-static uint16_t c_normalized[C_LENGTH];
-static uint16_t c_index;
+static float     c0[C_LENGTH*2];  // first half real, second half imaginary
+static uint16_t  c0_normalized[C_LENGTH];
+
+__attribute__((aligned(8)))
+static float     c1[C_LENGTH*2];
+static uint16_t  c1_normalized[C_LENGTH];
+
+#define C0 0
+#define C1 1
+static bool curr_c;
+
+static uint16_t* c_normalized;
+static uint16_t  c_index;
+
+static bool generate_new_c;
 
 static mcpwm_timer_handle_t s_timer;
 static mcpwm_oper_handle_t  s_operator;
@@ -27,8 +43,12 @@ static mcpwm_gen_handle_t   s_generator;
 static inline uint16_t get_next_duty(void)
 {
     uint16_t c_value = c_normalized[c_index];
-    if (++c_index == C_LENGTH)
+    if (++c_index == C_LENGTH) {
+        c_normalized = (curr_c == C0) ? c1_normalized : c0_normalized;
+        curr_c = !curr_c;
+        generate_new_c = true;
         c_index = 0;
+    }
     return c_value;
 }
 
@@ -97,16 +117,43 @@ void timer_setup(void)
 
 void app_main(void)
 {
-    generate_code(c, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
-    normalize_code(c, c_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
+    generate_code(c0, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
+    normalize_code(c0, c0_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
+
+    generate_code(c1, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
+    normalize_code(c1, c1_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
+
+    curr_c = C0;
+    c_normalized = c0_normalized;
+    c_index = 0;
+    generate_new_c = false;
+
     timer_setup();
-    ESP_LOGI(TAG, "Setup complete");
 
-    setup_sd();
+    float* new_c;
+    uint16_t* new_c_normalized;
 
-    const char *c_file_path = MOUNT_POINT"/c_normalized.bin";
-    ESP_LOGI(TAG, "c_normalized: [%d %d %d %d ...]", c_normalized[0], c_normalized[1], c_normalized[2], c_normalized[3]);
-    export_binary(c_file_path, (char*)c_normalized, sizeof(c_normalized));
+    while (1) {
+        if (generate_new_c) {
+            if (curr_c == C1) {
+                new_c = c0;
+                new_c_normalized = c0_normalized;
+            } else {
+                new_c = c1;
+                new_c_normalized = c1_normalized;
+            }
+            generate_code(new_c, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
+            normalize_code(new_c, new_c_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
 
-    cleanup_sd();
+            setup_sd();
+            export_binary(c_file_path, (char*)new_c_normalized, sizeof(new_c_normalized));
+            cleanup_sd();
+
+            ESP_LOGI(TAG, "Generated new c and wrote to SD card");
+
+            generate_new_c = false;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(10));  // 10 ms = 10000 us; watchdog will complain if too short
+    }
 }
