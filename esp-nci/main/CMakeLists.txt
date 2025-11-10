@@ -1,4 +1,4 @@
-set(srcs "main.c" "sd.c" "nci.h" "ifft.h" "sd.h")
+set(srcs "main.c" "sd.c" "pwm.h" "nci.h" "ifft.h" "sd.h")
 
 idf_component_register(
     SRCS ${srcs}

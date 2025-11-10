@@ -30,6 +30,7 @@
     "stddef.h": "c",
     "sd.h": "c",
     "cstdio": "c",
-    "fstream": "c"
+    "fstream": "c",
+    "freertos.h": "c"
   }
 }
