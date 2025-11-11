@@ -9,7 +9,13 @@
 #include "sd.h"
 
 static const char* TAG = "esp-nci";
-static const char* c_file_path = MOUNT_POINT"/c_normalized.bin";
+static char c_file_path[] = "/c0_normalized.bin";
+
+#define C_FILE_PATH_LENGTH 18
+#define C_NUMBER_INDEX     2
+#define MOUNT_POINT_LENGTH 4
+
+#define C_NORMALIZED_SIZE_BYTES C_LENGTH*2
 
 // input to FFT must be aligned to 64-bit (8 byte) boundary
 __attribute__((aligned(8)))
@@ -27,6 +33,18 @@ uint16_t  c_index;
 
 bool generate_new_c;
 
+static inline void write_file(uint16_t* c)
+{
+    char write_path[MOUNT_POINT_LENGTH+C_FILE_PATH_LENGTH];
+    strcpy(write_path, MOUNT_POINT);
+    strcat(write_path, c_file_path);
+
+    ESP_LOGI(TAG, "c_normalized: [%d %d %d %d ...]", c[0], c[1], c[2], c[3]);
+    export_binary(write_path, (char*)c, C_NORMALIZED_SIZE_BYTES);
+    
+    ++c_file_path[C_NUMBER_INDEX];
+}
+
 void setup(void)
 {
     generate_code(c0, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
@@ -34,6 +52,11 @@ void setup(void)
 
     generate_code(c1, C_MAX_FREQ_HZ, PWM_FREQUENCY_HZ, C_LENGTH);
     normalize_code(c1, c1_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
+
+    setup_sd();
+    write_file(c0_normalized);
+    write_file(c1_normalized);
+    cleanup_sd();
 
     curr_c = C0;
     c_normalized = c0_normalized;
@@ -63,10 +86,8 @@ void main_loop(void* pvParameters)
             normalize_code(new_c, new_c_normalized, TIMER_PERIOD_TICKS, C_LENGTH);
 
             setup_sd();
-            export_binary(c_file_path, (char*)new_c_normalized, sizeof(new_c_normalized));
+            write_file(new_c_normalized);
             cleanup_sd();
-
-            ESP_LOGI(TAG, "Generated new c and wrote to SD card");
 
             generate_new_c = false;
         }
