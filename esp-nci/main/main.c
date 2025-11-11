@@ -9,10 +9,10 @@
 #include "sd.h"
 
 static const char* TAG = "esp-nci";
-static char c_file_path[] = "/c0_normalized.bin";
+static char c_file_path[] = "/c00_normalized.bin";
 
-#define C_FILE_PATH_LENGTH 18
-#define C_NUMBER_INDEX     2
+#define C_FILE_PATH_LENGTH 19
+#define C_NUMBER_INDEX     3
 #define MOUNT_POINT_LENGTH 4
 
 #define C_NORMALIZED_SIZE_BYTES C_LENGTH*2
@@ -33,6 +33,16 @@ uint16_t  c_index;
 
 bool generate_new_c;
 
+static inline void increment_file_number(void)
+{
+    if (c_file_path[C_NUMBER_INDEX] == '9') {
+        c_file_path[C_NUMBER_INDEX] = '0';
+        ++c_file_path[C_NUMBER_INDEX-1];
+    } else {
+        ++c_file_path[C_NUMBER_INDEX];
+    }
+}
+
 static inline void write_file(uint16_t* c)
 {
     char write_path[MOUNT_POINT_LENGTH+C_FILE_PATH_LENGTH];
@@ -42,7 +52,7 @@ static inline void write_file(uint16_t* c)
     ESP_LOGI(TAG, "c_normalized: [%d %d %d %d ...]", c[0], c[1], c[2], c[3]);
     export_binary(write_path, (char*)c, C_NORMALIZED_SIZE_BYTES);
     
-    ++c_file_path[C_NUMBER_INDEX];
+    increment_file_number();
 }
 
 void setup(void)
