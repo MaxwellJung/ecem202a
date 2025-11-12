@@ -13,8 +13,8 @@ rng = np.random.default_rng()
 
 def main():
     # generate 60 second NCI video @ 30fps
-    VIDEO_WIDTH = 16
-    VIDEO_HEIGHT = 16
+    VIDEO_WIDTH = 256
+    VIDEO_HEIGHT = 256
     VIDEO_FPS = 30
     VIDEO_DURATION = 60
     FRAME_COUNT = VIDEO_FPS*VIDEO_DURATION
@@ -22,9 +22,9 @@ def main():
                           width=VIDEO_WIDTH, height=VIDEO_HEIGHT,
                           fps=VIDEO_FPS, duration=VIDEO_DURATION)
     c = c[:, 0, 0, 0]
-    np.save('in/sim/c', c)
+    np.save('in/c', c)
 
-    out = cv2.VideoWriter('in/sim/y.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_HEIGHT, VIDEO_WIDTH), True)
+    out = cv2.VideoWriter('in/y.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (VIDEO_HEIGHT, VIDEO_WIDTH), True)
     for frame in (255*y).clip(min=0, max=255):
         out.write(frame.astype(np.uint8))
     out.release()
@@ -34,14 +34,14 @@ def main():
     plt.title("Static Scene")
     plt.xlabel("Width")
     plt.ylabel("Height")
-    plt.savefig("out/r_true.png")
+    plt.savefig("in/r_true.png")
 
     fig = plt.figure(figsize=(16, 9))
     plt.hist(n.flatten(), bins=100)
     plt.title("Noise Distribution")
     plt.xlabel("Amplitude")
     plt.ylabel("Count")
-    plt.savefig("out/n_histogram.png")
+    plt.savefig("in/n_histogram.png")
 
 
 def generate_video(l: float, noise_variance: float, 
