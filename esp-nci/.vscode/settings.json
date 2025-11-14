@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.espIdfPathWin": "C:\\Users\\wenta\\esp\\v5.5.1\\esp-idf",
-  "idf.pythonInstallPath": "C:\\Users\\wenta\\.espressif\\tools\\idf-python\\3.11.2\\python.exe",
+  "idf.pythonInstallPath": "/opt/homebrew/bin/python3",
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
   ],
@@ -31,6 +31,22 @@
     "sd.h": "c",
     "cstdio": "c",
     "fstream": "c",
-    "freertos.h": "c"
+    "freertos.h": "c",
+    "float.h": "c",
+    "stdint.h": "c",
+    "esp_random.h": "c",
+    "esp_dsp.h": "c",
+    "random": "c",
+    "ifft.h": "c",
+    "math.h": "c",
+    "dsps_fft4r.h": "c",
+    "dsps_fft2r.h": "c",
+    "nci.h": "c",
+    "esp_log.h": "c",
+    "main.h": "c",
+    "mcpwm_prelude.h": "c",
+    "esp_timer.h": "c",
+    "esp_attr.h": "c",
+    "stdbool.h": "c"
   }
 }

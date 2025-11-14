@@ -28,7 +28,7 @@
 
 #define EXAMPLE_MAX_CHAR_SIZE    64
 
-static const char *TAG = "example";
+static const char *TAG = "sd";
 
 #define EXAMPLE_IS_UHS1    (CONFIG_EXAMPLE_SDMMC_SPEED_UHS_I_SDR50 || CONFIG_EXAMPLE_SDMMC_SPEED_UHS_I_DDR50 || CONFIG_EXAMPLE_SDMMC_SPEED_UHS_I_SDR104)
 
@@ -200,8 +200,8 @@ esp_err_t export_binary(const char *path, char *data, size_t data_size) {
     ESP_LOGI(TAG, "Opening file %s", path);
 
     // make sure to turn on "Long filename support" in SDK Configuration editor
-    // calling fopen on default config crashes if path is too long
-    FILE *f = fopen(path, "wb");
+    // otherwise, calling fopen crashes if path is too long
+    FILE *f = fopen(path, "ab");
     if (f == NULL) {
         ESP_LOGE(TAG, "Failed to open file for writing");
         return ESP_FAIL;
