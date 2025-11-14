@@ -24,8 +24,7 @@ void setup(void) {
     cleanup_sd();
 }
 
-void loop()
-{
+void loop() {
     uint16_t* new_c = update_pwm_buffer();
     if (new_c) {
         setup_sd();
