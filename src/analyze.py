@@ -154,24 +154,26 @@ def main():
 
     align_mat = get_alignment_matrix(y, c)
     y_to_c = align_mat.argmax(axis=0)
-    c_index_start = np.min(y_to_c)
-    c_index_end = np.max(y_to_c)+1
-    cropped_align_mat = align_mat[c_index_start:c_index_end]
+    # c_index_start = np.min(y_to_c)
+    # c_index_end = np.max(y_to_c)+1
+    # cropped_align_mat = align_mat[c_index_start:c_index_end]
 
-    align_mat_image = np.zeros(cropped_align_mat.shape)
-    align_mat_image[np.argmax(cropped_align_mat, axis=0), np.arange(cropped_align_mat.shape[1])] = \
-        cropped_align_mat[np.argmax(cropped_align_mat, axis=0), np.arange(cropped_align_mat.shape[1])]
+    # align_mat_image = np.zeros(cropped_align_mat.shape)
+    # align_mat_image[np.argmax(cropped_align_mat, axis=0), np.arange(cropped_align_mat.shape[1])] = \
+    #     cropped_align_mat[np.argmax(cropped_align_mat, axis=0), np.arange(cropped_align_mat.shape[1])]
 
-    fig = plt.figure(figsize=(16, 9))
-    ax = fig.add_subplot()
-    ax.matshow(align_mat_image, origin='lower', extent=[(0-0.5)/Y_SAMPLE_RATE, (len(y)-0.5)/Y_SAMPLE_RATE, (c_index_start-0.5)/C_SAMPLE_RATE, (c_index_end-0.5)/C_SAMPLE_RATE])
-    ax.set_title("Alignment Matrix (Cropped)")
-    ax.xaxis.tick_bottom()
-    ax.set_xlabel("Y time (second)")
-    ax.set_ylabel("C time (second)")
-    fig.savefig("out/align-mat.png")
-    print("Saved alignment matrix out/align-mat.png")
-    plt.close(fig)
+    # fig = plt.figure(figsize=(16, 9))
+    # ax = fig.add_subplot()
+    # ax.matshow(align_mat_image, origin='lower', extent=[(0-0.5)/Y_SAMPLE_RATE, (len(y)-0.5)/Y_SAMPLE_RATE, (c_index_start-0.5)/C_SAMPLE_RATE, (c_index_end-0.5)/C_SAMPLE_RATE])
+    # ax.set_title("Alignment Matrix (Cropped)")
+    # ax.xaxis.tick_bottom()
+    # ax.set_xlabel("Y time (second)")
+    # ax.set_ylabel("C time (second)")
+    # fig.savefig("../out/align-mat.png")
+    # print("Saved alignment matrix out/align-mat.png")
+    # plt.close(fig)
+
+    plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE, output_path="out/align-mat.png")
 
     r = calculate_r(y, c, y_to_c=y_to_c, r_start=0, r_end=int(30*VIDEO_FPS), batch_size=5)
     fig = plt.figure(figsize=(16, 9))
@@ -239,6 +241,82 @@ def get_alignment_matrix(y, c, window_size=511):
     return align_mat
 
 
+def plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE, 
+                                  title="Alignment Matrix for Manipulated Video",
+                                  output_path="out/align-mat.png",
+                                  threshold_percentile=50):
+    """
+    Plot alignment matrix
+    
+    Args:
+        y: Video frames
+        c: Code signal
+        Y_SAMPLE_RATE: Video sample rate (fps)
+        C_SAMPLE_RATE: Code signal sample rate
+        title: Plot title
+        output_path: Where to save the plot
+        threshold_percentile: Percentile threshold for fading weak correlations (default: 50)
+    """
+    align_mat = get_alignment_matrix(y, c)
+    y_to_c = align_mat.argmax(axis=0)
+    c_index_start = np.min(y_to_c)
+    c_index_end = np.max(y_to_c) + 1
+    cropped_align_mat = align_mat[c_index_start:c_index_end]
+    
+    # Normalize to 0-1 for better visualization
+    cropped_align_mat_norm = (cropped_align_mat - cropped_align_mat.min()) / \
+                              (cropped_align_mat.max() - cropped_align_mat.min())
+    
+    # Apply threshold to fade away weak correlations
+    threshold = np.percentile(cropped_align_mat_norm, threshold_percentile)
+    cropped_align_mat_masked = cropped_align_mat_norm.copy()
+    cropped_align_mat_masked[cropped_align_mat_masked < threshold] = 0
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    
+    im = ax.imshow(
+        cropped_align_mat_masked,
+        aspect='auto',
+        origin="lower",
+        extent=[
+            0, len(y) / Y_SAMPLE_RATE,
+            c_index_start / C_SAMPLE_RATE,
+            c_index_end / C_SAMPLE_RATE,
+        ],
+        cmap='viridis',
+        interpolation='bilinear',
+        vmin=0,
+        vmax=1
+    )
+    
+    # Add bright alignment path (yellow-green) only where correlation is strong
+    y_times = np.arange(len(y)) / Y_SAMPLE_RATE
+    c_times = y_to_c / C_SAMPLE_RATE
+    
+    # Get correlation strength along the path
+    path_strength = cropped_align_mat_norm[y_to_c - c_index_start, np.arange(len(y))]
+    
+    # Plot path segments with varying alpha based on correlation strength
+    for i in range(len(y_times) - 1):
+        avg_strength = (path_strength[i] + path_strength[i+1]) / 2
+        if avg_strength > threshold:
+            alpha = min(0.95, avg_strength)
+            ax.plot(y_times[i:i+2], c_times[i:i+2], 
+                   color='#CCFF00', linewidth=4, alpha=alpha)
+    
+    ax.set_xlabel("Video Time (s)", fontsize=11, fontweight='bold')
+    ax.set_ylabel("Code Signal Time (s)", fontsize=11, fontweight='bold')
+    
+    title_text = f"Prediction: {title}"
+    
+    ax.set_title(title_text, fontsize=10, pad=10)
+        
+    plt.tight_layout()
+    fig.savefig(output_path, dpi=150, bbox_inches='tight', facecolor='white')
+    print(f"Saved styled alignment matrix to {output_path}")
+    plt.close(fig)
+
+
 def calculate_r(y, c, y_to_c=None, r_start=0, r_end=None, window_size=511, batch_size=None):
     if y_to_c is None:
         align_mat = get_alignment_matrix(y, c, window_size=window_size)
@@ -280,7 +358,7 @@ def calculate_r(y, c, y_to_c=None, r_start=0, r_end=None, window_size=511, batch
 
         r.append(r_i)
 
-    r = np.concat(r)
+    r = np.concatenate(r)
 
     return r
 
