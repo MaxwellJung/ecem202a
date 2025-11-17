@@ -28,7 +28,7 @@
 
 #define EXAMPLE_MAX_CHAR_SIZE    64
 
-static const char *TAG = "example";
+static const char *TAG = "sd";
 
 #define EXAMPLE_IS_UHS1    (CONFIG_EXAMPLE_SDMMC_SPEED_UHS_I_SDR50 || CONFIG_EXAMPLE_SDMMC_SPEED_UHS_I_DDR50 || CONFIG_EXAMPLE_SDMMC_SPEED_UHS_I_SDR104)
 
@@ -200,8 +200,17 @@ esp_err_t export_binary(const char *path, char *data, size_t data_size) {
     ESP_LOGI(TAG, "Opening file %s", path);
 
     // make sure to turn on "Long filename support" in SDK Configuration editor
-    // calling fopen on default config crashes if path is too long
-    FILE *f = fopen(path, "wb");
+    // otherwise, calling fopen crashes if path is too long
+
+    FILE* f;
+    if (access(path, F_OK) == 0) {
+        // append to exisitng file
+        f = fopen(path, "ab");
+    } else {
+        // create new file
+        f = fopen(path, "wb");
+    }
+
     if (f == NULL) {
         ESP_LOGE(TAG, "Failed to open file for writing");
         return ESP_FAIL;
@@ -215,13 +224,12 @@ esp_err_t export_binary(const char *path, char *data, size_t data_size) {
 
     fclose(f);
 
-    ESP_LOGI(TAG, "Binary file written");
+    ESP_LOGI(TAG, "Wrote %d bytes to %s", data_size, path);
 
     return ESP_OK;
 }
 
 void cleanup_sd(void) {
-    esp_err_t ret;
 
     // All done, unmount partition and disable SDMMC peripheral
     esp_vfs_fat_sdcard_unmount(mount_point, card);
@@ -229,7 +237,7 @@ void cleanup_sd(void) {
 
     // Deinitialize the power control driver if it was used
 #if CONFIG_EXAMPLE_SD_PWR_CTRL_LDO_INTERNAL_IO
-    ret = sd_pwr_ctrl_del_on_chip_ldo(pwr_ctrl_handle);
+    esp_err_t ret = sd_pwr_ctrl_del_on_chip_ldo(pwr_ctrl_handle);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to delete the on-chip LDO power control driver");
         return;
