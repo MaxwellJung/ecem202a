@@ -49,6 +49,9 @@ def main():
     print(f'Applying gamma={GAMMA} correction')
     y = (y/255)**(1/GAMMA)
 
+    # plot alignment matrix before cropping
+    plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE, title="Alignment Matrix for Original Video" ,output_path="out/align-mat-original.png")
+
     # Simulate malicious video cut
     y = np.concatenate((y[:VIDEO_LENGTH//4], y[2*VIDEO_LENGTH//4:]))
     # Simulate malicious photoshop (edit in a grey square in the middle)
