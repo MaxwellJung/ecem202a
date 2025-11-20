@@ -157,24 +157,24 @@ def main():
 
     align_mat = get_alignment_matrix(y, c)
     y_to_c = align_mat.argmax(axis=0)
-    c_index_start = np.min(y_to_c)
-    c_index_end = np.max(y_to_c)+1
-    cropped_align_mat = align_mat[c_index_start:c_index_end]
+    # c_index_start = np.min(y_to_c)
+    # c_index_end = np.max(y_to_c)+1
+    # cropped_align_mat = align_mat[c_index_start:c_index_end]
 
-    align_mat_image = np.zeros(cropped_align_mat.shape)
-    align_mat_image[np.argmax(cropped_align_mat, axis=0), np.arange(cropped_align_mat.shape[1])] = \
-        cropped_align_mat[np.argmax(cropped_align_mat, axis=0), np.arange(cropped_align_mat.shape[1])]
+    # align_mat_image = np.zeros(cropped_align_mat.shape)
+    # align_mat_image[np.argmax(cropped_align_mat, axis=0), np.arange(cropped_align_mat.shape[1])] = \
+    #     cropped_align_mat[np.argmax(cropped_align_mat, axis=0), np.arange(cropped_align_mat.shape[1])]
 
-    fig = plt.figure(figsize=(16, 9))
-    ax = fig.add_subplot()
-    ax.matshow(align_mat_image, origin='lower', extent=[(0-0.5)/Y_SAMPLE_RATE, (len(y)-0.5)/Y_SAMPLE_RATE, (c_index_start-0.5)/C_SAMPLE_RATE, (c_index_end-0.5)/C_SAMPLE_RATE])
-    ax.set_title("Alignment Matrix (Cropped)")
-    ax.xaxis.tick_bottom()
-    ax.set_xlabel("Y time (second)")
-    ax.set_ylabel("C time (second)")
-    fig.savefig("out/align-mat-old-crop.png")
-    print("Saved alignment matrix out/align-mat.png")
-    plt.close(fig)
+    # fig = plt.figure(figsize=(16, 9))
+    # ax = fig.add_subplot()
+    # ax.matshow(align_mat_image, origin='lower', extent=[(0-0.5)/Y_SAMPLE_RATE, (len(y)-0.5)/Y_SAMPLE_RATE, (c_index_start-0.5)/C_SAMPLE_RATE, (c_index_end-0.5)/C_SAMPLE_RATE])
+    # ax.set_title("Alignment Matrix (Cropped)")
+    # ax.xaxis.tick_bottom()
+    # ax.set_xlabel("Y time (second)")
+    # ax.set_ylabel("C time (second)")
+    # fig.savefig("out/align-mat-old-crop.png")
+    # print("Saved alignment matrix out/align-mat.png")
+    # plt.close(fig)
 
     plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE, output_path="out/align-mat.png")
 
@@ -269,6 +269,88 @@ def get_alignment_matrix(y, c, window_size=511, use_all_channels=True):
     align_mat = align_mat.T.cpu().numpy()
     
     return align_mat
+
+
+def plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE, 
+                                 title="Alignment Matrix",
+                                 output_path="out/align-mat-styled.png",
+                                 use_log_scale=False,
+                                 brighten_path=True):
+    """
+    Plot alignment matrix with enhanced visualization similar to reference image
+    
+    Args:
+        y: Video frames
+        c: Code signal
+        Y_SAMPLE_RATE: Video sample rate (fps)
+        C_SAMPLE_RATE: Code signal sample rate
+        title: Plot title
+        output_path: Where to save the plot
+        use_log_scale: Apply log scaling to enhance weak signals
+        brighten_path: Highlight the strongest alignment path
+    """
+    align_mat = get_alignment_matrix(y, c)
+    y_to_c = align_mat.argmax(axis=0)
+    c_index_start = np.min(y_to_c)
+    c_index_end = np.max(y_to_c) + 1
+    cropped_align_mat = align_mat[c_index_start:c_index_end]
+    
+    if use_log_scale:
+        # Apply log scaling to enhance weaker signals
+        cropped_align_mat_vis = np.log10(cropped_align_mat - cropped_align_mat.min() + 1)
+    else:
+        cropped_align_mat_vis = cropped_align_mat.copy()
+    
+    # Normalize to 0-1
+    mat_min = cropped_align_mat_vis.min()
+    mat_max = cropped_align_mat_vis.max()
+    cropped_align_mat_vis = (cropped_align_mat_vis - mat_min) / (mat_max - mat_min + 1e-6)
+    
+    if brighten_path:
+        align_mat_image = np.zeros(cropped_align_mat_vis.shape)
+        best_indices = np.argmax(cropped_align_mat_vis, axis=0)
+        
+        # Add the strongest correlation values along the path
+        for i in range(cropped_align_mat_vis.shape[1]):
+            idx = best_indices[i]
+            align_mat_image[idx, i] = cropped_align_mat_vis[idx, i]
+            
+            if idx > 0:
+                align_mat_image[idx-1, i] = cropped_align_mat_vis[idx-1, i] * 0.5
+            if idx < cropped_align_mat_vis.shape[0] - 1:
+                align_mat_image[idx+1, i] = cropped_align_mat_vis[idx+1, i] * 0.5
+        
+        mat_to_plot = align_mat_image
+    else:
+        mat_to_plot = cropped_align_mat_vis
+    
+    fig, ax = plt.subplots(figsize=(12, 10))
+    
+    im = ax.imshow(
+        mat_to_plot,
+        origin='lower',
+        extent=[
+            (0-0.5)/Y_SAMPLE_RATE, 
+            (len(y)-0.5)/Y_SAMPLE_RATE, 
+            (c_index_start-0.5)/C_SAMPLE_RATE, 
+            (c_index_end-0.5)/C_SAMPLE_RATE
+        ],
+        cmap='hot', 
+        aspect='auto',
+        interpolation='bilinear'
+    )
+    
+    ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
+    ax.set_xlabel("Video Time (second)", fontsize=12, fontweight='bold')
+    ax.set_ylabel("Code Signal Time (second)", fontsize=12, fontweight='bold')
+    
+    cbar = plt.colorbar(im, ax=ax, label='Correlation Strength')
+    cbar.ax.tick_params(labelsize=10)
+    
+    plt.tight_layout()
+    fig.savefig(output_path, dpi=200, bbox_inches='tight', facecolor='white')
+    print(f"Saved alignment matrix to {output_path}")
+    plt.close(fig)
 
 
 def calculate_r(y, c, y_to_c=None, r_start=0, r_end=None, window_size=511, batch_size=None):
