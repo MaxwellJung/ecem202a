@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import torch
 import cv2
 from scipy.signal import resample
+from utils.filters import bilateral_filter_1d
 
 # Check if GPU is available (CUDA for NVIDIA, MPS for Apple Silicon)
 if torch.cuda.is_available():
@@ -172,7 +173,7 @@ def main():
     # ax.xaxis.tick_bottom()
     # ax.set_xlabel("Y time (second)")
     # ax.set_ylabel("C time (second)")
-    # fig.savefig("out/align-mat-old-crop.png")
+    # fig.savefig("../out/align-mat-old-crop.png")
     # print("Saved alignment matrix out/align-mat.png")
     # plt.close(fig)
 
@@ -218,20 +219,31 @@ def load_video(video_path):
     return y, fps
 
 
-def get_alignment_matrix(y, c, window_size=511, use_all_channels=True):
+def get_alignment_matrix(y, c, window_size=511, use_all_channels=True, 
+                         use_bilateral=True, spatial_sigma=2.0, range_sigma=0.05):
     """
-    Improved alignment matrix with better signal extraction
+    Improved alignment matrix with bilateral filtering option
     
     Args:
         y: Video frames (T, H, W, C)
         c: Code signal
         window_size: Window size for correlation
         use_all_channels: If True, use all color channels separately
+        use_bilateral: Apply bilateral filtering to temporal signals
+        spatial_sigma: Bilateral filter spatial parameter
+        range_sigma: Bilateral filter range parameter
     """
     if use_all_channels:
         y_red = np.mean(y[:, :, :, 0], axis=(1, 2))
         y_green = np.mean(y[:, :, :, 1], axis=(1, 2))
         y_blue = np.mean(y[:, :, :, 2], axis=(1, 2))
+        
+        # Apply bilateral filtering to each channel if enabled
+        if use_bilateral:
+            print("Applying bilateral filter to video channels...")
+            y_red = bilateral_filter_1d(y_red, spatial_sigma, range_sigma, window_size=11)
+            y_green = bilateral_filter_1d(y_green, spatial_sigma, range_sigma, window_size=11)
+            y_blue = bilateral_filter_1d(y_blue, spatial_sigma, range_sigma, window_size=11)
         
         # Normalize each channel
         y_red = (y_red - np.mean(y_red)) / (np.std(y_red) + 1e-6)
@@ -241,6 +253,12 @@ def get_alignment_matrix(y, c, window_size=511, use_all_channels=True):
         y_global = (y_red + y_green + y_blue) / 3.0
     else:
         y_global = np.mean(y, axis=(1, 2, 3))
+        
+        # Apply bilateral filtering if enabled
+        if use_bilateral:
+            print("Applying bilateral filter to video signal...")
+            y_global = bilateral_filter_1d(y_global, spatial_sigma, range_sigma, window_size=11)
+        
         y_global = (y_global - np.mean(y_global)) / (np.std(y_global) + 1e-6)
     
     # Normalize c signal
@@ -258,11 +276,11 @@ def get_alignment_matrix(y, c, window_size=511, use_all_channels=True):
     y_windows = (y_windows - np.mean(y_windows, axis=1, keepdims=True)) / \
                 (np.std(y_windows, axis=1, keepdims=True) + 1e-6)
     
-    device = torch.device("cuda" if torch.cuda.is_available() else 
+    device_local = torch.device("cuda" if torch.cuda.is_available() else 
                          "mps" if torch.backends.mps.is_available() else "cpu")
     
-    c_windows_torch = torch.from_numpy(c_windows).float().to(device)
-    y_windows_torch = torch.from_numpy(y_windows).float().to(device)
+    c_windows_torch = torch.from_numpy(c_windows).float().to(device_local)
+    y_windows_torch = torch.from_numpy(y_windows).float().to(device_local)
     
     # Normalized cross-correlation
     align_mat = torch.matmul(y_windows_torch, c_windows_torch.T) / window_size
