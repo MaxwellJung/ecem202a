@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import torch
 import cv2
 from scipy.signal import resample
+from utils.filters import bilateral_filter_1d
 
 # Check if GPU is available (CUDA for NVIDIA, MPS for Apple Silicon)
 if torch.cuda.is_available():
@@ -172,7 +173,7 @@ def main():
     # ax.xaxis.tick_bottom()
     # ax.set_xlabel("Y time (second)")
     # ax.set_ylabel("C time (second)")
-    # fig.savefig("../out/align-mat.png")
+    # fig.savefig("../out/align-mat-old-crop.png")
     # print("Saved alignment matrix out/align-mat.png")
     # plt.close(fig)
 
@@ -218,38 +219,83 @@ def load_video(video_path):
     return y, fps
 
 
-def get_alignment_matrix(y, c, window_size=511):
-    # make sure window_size is odd number
-    # ideally some power of 2 minus 1
-
-    # Create global vector y by reducing each frame to a single value
-    y = np.mean(y, axis=(1,2,3))
-
-    padded_c = np.pad(c, (window_size//2, window_size//2))
-    padded_y = np.pad(y, (window_size//2, window_size//2))
-    c_prime_windows = sliding_window_view(padded_c, window_size, writeable=True)
+def get_alignment_matrix(y, c, window_size=511, use_all_channels=True, 
+                         use_bilateral=True, spatial_sigma=2.0, range_sigma=0.05):
+    """
+    Improved alignment matrix with bilateral filtering option
+    
+    Args:
+        y: Video frames (T, H, W, C)
+        c: Code signal
+        window_size: Window size for correlation
+        use_all_channels: If True, use all color channels separately
+        use_bilateral: Apply bilateral filtering to temporal signals
+        spatial_sigma: Bilateral filter spatial parameter
+        range_sigma: Bilateral filter range parameter
+    """
+    if use_all_channels:
+        y_red = np.mean(y[:, :, :, 0], axis=(1, 2))
+        y_green = np.mean(y[:, :, :, 1], axis=(1, 2))
+        y_blue = np.mean(y[:, :, :, 2], axis=(1, 2))
+        
+        # Apply bilateral filtering to each channel if enabled
+        if use_bilateral:
+            print("Applying bilateral filter to video channels...")
+            y_red = bilateral_filter_1d(y_red, spatial_sigma, range_sigma, window_size=11)
+            y_green = bilateral_filter_1d(y_green, spatial_sigma, range_sigma, window_size=11)
+            y_blue = bilateral_filter_1d(y_blue, spatial_sigma, range_sigma, window_size=11)
+        
+        # Normalize each channel
+        y_red = (y_red - np.mean(y_red)) / (np.std(y_red) + 1e-6)
+        y_green = (y_green - np.mean(y_green)) / (np.std(y_green) + 1e-6)
+        y_blue = (y_blue - np.mean(y_blue)) / (np.std(y_blue) + 1e-6)
+        
+        y_global = (y_red + y_green + y_blue) / 3.0
+    else:
+        y_global = np.mean(y, axis=(1, 2, 3))
+        
+        # Apply bilateral filtering if enabled
+        if use_bilateral:
+            print("Applying bilateral filter to video signal...")
+            y_global = bilateral_filter_1d(y_global, spatial_sigma, range_sigma, window_size=11)
+        
+        y_global = (y_global - np.mean(y_global)) / (np.std(y_global) + 1e-6)
+    
+    # Normalize c signal
+    c_normalized = (c - np.mean(c)) / (np.std(c) + 1e-6)
+    
+    padded_c = np.pad(c_normalized, (window_size//2, window_size//2))
+    padded_y = np.pad(y_global, (window_size//2, window_size//2))
+    
+    c_windows = sliding_window_view(padded_c, window_size, writeable=True)
     y_windows = sliding_window_view(padded_y, window_size, writeable=True)
-
-    # Convert to PyTorch tensors and move to GPU
-    c_prime_windows_torch = torch.from_numpy(c_prime_windows).float().to(device)
-    y_windows_torch = torch.from_numpy(y_windows).float().to(device)
-
-    # Perform matrix multiplication on GPU/MPS (or by default your CPU)
-    align_mat = torch.matmul(y_windows_torch, c_prime_windows_torch.T)
-    align_mat = align_mat.T
-
-    # Move result back to CPU and convert to NumPy
-    align_mat = align_mat.cpu().numpy()
-
+    
+    # Normalize each window
+    c_windows = (c_windows - np.mean(c_windows, axis=1, keepdims=True)) / \
+                (np.std(c_windows, axis=1, keepdims=True) + 1e-6)
+    y_windows = (y_windows - np.mean(y_windows, axis=1, keepdims=True)) / \
+                (np.std(y_windows, axis=1, keepdims=True) + 1e-6)
+    
+    device_local = torch.device("cuda" if torch.cuda.is_available() else 
+                         "mps" if torch.backends.mps.is_available() else "cpu")
+    
+    c_windows_torch = torch.from_numpy(c_windows).float().to(device_local)
+    y_windows_torch = torch.from_numpy(y_windows).float().to(device_local)
+    
+    # Normalized cross-correlation
+    align_mat = torch.matmul(y_windows_torch, c_windows_torch.T) / window_size
+    align_mat = align_mat.T.cpu().numpy()
+    
     return align_mat
 
 
 def plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE, 
-                                  title="Alignment Matrix for Manipulated Video",
-                                  output_path="out/align-mat.png",
-                                  threshold_percentile=50):
+                                 title="Alignment Matrix",
+                                 output_path="out/align-mat-styled.png",
+                                 use_log_scale=False,
+                                 brighten_path=True):
     """
-    Plot alignment matrix
+    Plot alignment matrix with enhanced visualization similar to reference image
     
     Args:
         y: Video frames
@@ -258,7 +304,8 @@ def plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE,
         C_SAMPLE_RATE: Code signal sample rate
         title: Plot title
         output_path: Where to save the plot
-        threshold_percentile: Percentile threshold for fading weak correlations (default: 50)
+        use_log_scale: Apply log scaling to enhance weak signals
+        brighten_path: Highlight the strongest alignment path
     """
     align_mat = get_alignment_matrix(y, c)
     y_to_c = align_mat.argmax(axis=0)
@@ -266,57 +313,61 @@ def plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE,
     c_index_end = np.max(y_to_c) + 1
     cropped_align_mat = align_mat[c_index_start:c_index_end]
     
-    # Normalize to 0-1 for better visualization
-    cropped_align_mat_norm = (cropped_align_mat - cropped_align_mat.min()) / \
-                              (cropped_align_mat.max() - cropped_align_mat.min())
+    if use_log_scale:
+        # Apply log scaling to enhance weaker signals
+        cropped_align_mat_vis = np.log10(cropped_align_mat - cropped_align_mat.min() + 1)
+    else:
+        cropped_align_mat_vis = cropped_align_mat.copy()
     
-    # Apply threshold to fade away weak correlations
-    threshold = np.percentile(cropped_align_mat_norm, threshold_percentile)
-    cropped_align_mat_masked = cropped_align_mat_norm.copy()
-    cropped_align_mat_masked[cropped_align_mat_masked < threshold] = 0
-
-    fig, ax = plt.subplots(figsize=(10, 10))
+    # Normalize to 0-1
+    mat_min = cropped_align_mat_vis.min()
+    mat_max = cropped_align_mat_vis.max()
+    cropped_align_mat_vis = (cropped_align_mat_vis - mat_min) / (mat_max - mat_min + 1e-6)
+    
+    if brighten_path:
+        align_mat_image = np.zeros(cropped_align_mat_vis.shape)
+        best_indices = np.argmax(cropped_align_mat_vis, axis=0)
+        
+        # Add the strongest correlation values along the path
+        for i in range(cropped_align_mat_vis.shape[1]):
+            idx = best_indices[i]
+            align_mat_image[idx, i] = cropped_align_mat_vis[idx, i]
+            
+            if idx > 0:
+                align_mat_image[idx-1, i] = cropped_align_mat_vis[idx-1, i] * 0.5
+            if idx < cropped_align_mat_vis.shape[0] - 1:
+                align_mat_image[idx+1, i] = cropped_align_mat_vis[idx+1, i] * 0.5
+        
+        mat_to_plot = align_mat_image
+    else:
+        mat_to_plot = cropped_align_mat_vis
+    
+    fig, ax = plt.subplots(figsize=(12, 10))
     
     im = ax.imshow(
-        cropped_align_mat_masked,
-        aspect='auto',
-        origin="lower",
+        mat_to_plot,
+        origin='lower',
         extent=[
-            0, len(y) / Y_SAMPLE_RATE,
-            c_index_start / C_SAMPLE_RATE,
-            c_index_end / C_SAMPLE_RATE,
+            (0-0.5)/Y_SAMPLE_RATE, 
+            (len(y)-0.5)/Y_SAMPLE_RATE, 
+            (c_index_start-0.5)/C_SAMPLE_RATE, 
+            (c_index_end-0.5)/C_SAMPLE_RATE
         ],
-        cmap='viridis',
-        interpolation='bilinear',
-        vmin=0,
-        vmax=1
+        cmap='hot', 
+        aspect='auto',
+        interpolation='bilinear'
     )
     
-    # Add bright alignment path (yellow-green) only where correlation is strong
-    y_times = np.arange(len(y)) / Y_SAMPLE_RATE
-    c_times = y_to_c / C_SAMPLE_RATE
+    ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
+    ax.set_xlabel("Video Time (second)", fontsize=12, fontweight='bold')
+    ax.set_ylabel("Code Signal Time (second)", fontsize=12, fontweight='bold')
     
-    # Get correlation strength along the path
-    path_strength = cropped_align_mat_norm[y_to_c - c_index_start, np.arange(len(y))]
+    cbar = plt.colorbar(im, ax=ax, label='Correlation Strength')
+    cbar.ax.tick_params(labelsize=10)
     
-    # Plot path segments with varying alpha based on correlation strength
-    for i in range(len(y_times) - 1):
-        avg_strength = (path_strength[i] + path_strength[i+1]) / 2
-        if avg_strength > threshold:
-            alpha = min(0.95, avg_strength)
-            ax.plot(y_times[i:i+2], c_times[i:i+2], 
-                   color='#CCFF00', linewidth=4, alpha=alpha)
-    
-    ax.set_xlabel("Video Time (s)", fontsize=11, fontweight='bold')
-    ax.set_ylabel("Code Signal Time (s)", fontsize=11, fontweight='bold')
-    
-    title_text = f"Prediction: {title}"
-    
-    ax.set_title(title_text, fontsize=10, pad=10)
-        
     plt.tight_layout()
-    fig.savefig(output_path, dpi=150, bbox_inches='tight', facecolor='white')
-    print(f"Saved styled alignment matrix to {output_path}")
+    fig.savefig(output_path, dpi=200, bbox_inches='tight', facecolor='white')
+    print(f"Saved alignment matrix to {output_path}")
     plt.close(fig)
 
 
