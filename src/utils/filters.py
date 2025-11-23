@@ -7,6 +7,7 @@ import cv2
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.lib.stride_tricks import sliding_window_view
 
 def bilateral_filter_1d(signal, spatial_sigma=2.0, range_sigma=0.05, window_size=11):
     """
@@ -18,33 +19,18 @@ def bilateral_filter_1d(signal, spatial_sigma=2.0, range_sigma=0.05, window_size
         range_sigma: Controls smoothing based on intensity differences  
         window_size: Temporal neighborhood size
     """
-    filtered_signal = np.zeros_like(signal)
-    half_window = window_size // 2
-    
-    for t in range(len(signal)):
-        # Get temporal neighborhood
-        t_start = max(0, t - half_window)
-        t_end = min(len(signal), t + half_window + 1)
-        
-        # Get neighborhood values and their time indices
-        neighborhood = signal[t_start:t_end]
-        time_indices = np.arange(t_start, t_end)
-        
-        # Calculate weights
-        time_diffs = time_indices - t  # Temporal distance
-        intensity_diffs = neighborhood - signal[t]  # Intensity difference
-        
-        # Gaussian kernels
-        spatial_weights = np.exp(-0.5 * (time_diffs / spatial_sigma) ** 2)
-        range_weights = np.exp(-0.5 * (intensity_diffs / range_sigma) ** 2)
-        
-        # Combined weights
-        weights = spatial_weights * range_weights
-        weights_sum = np.sum(weights)
-        
-        if weights_sum > 0:
-            filtered_signal[t] = np.sum(weights * neighborhood) / weights_sum
-        else:
-            filtered_signal[t] = signal[t]
-            
+
+    # reflect padding is the default padding in cv::bilateralFilter
+    # https://docs.opencv.org/4.12.0/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
+    padded_signal = np.pad(signal, (window_size//2, window_size//2), 'reflect')
+    signal_windows = sliding_window_view(padded_signal, window_size, writeable=True)
+
+    time_diffs = np.arange(window_size) - window_size//2 # Temporal distance
+    intensity_diffs = (signal_windows.T-signal_windows[:, window_size//2]).T  # Intensity difference
+
+    spatial_weights = np.exp(-0.5 * (time_diffs / spatial_sigma) ** 2)
+    range_weights = np.exp(-0.5 * (intensity_diffs / range_sigma) ** 2)
+
+    filtered_signal = np.sum(spatial_weights * range_weights * signal_windows, axis=1) / np.sum(spatial_weights * range_weights, axis=1)
+
     return filtered_signal
