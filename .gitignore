@@ -207,3 +207,13 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Jekyll site artifacts
+docs/_site/
+docs/.jekyll-cache/
+docs/.sass-cache/
+
+# Track only Jekyll config + Markdown under docs/
+docs/*
+!docs/_config.yml
+!docs/**/*.md
