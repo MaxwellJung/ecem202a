@@ -146,7 +146,7 @@ def main():
     r = calculate_r(y, c, y_to_c=y_to_c, r_start=0, r_end=int(30*VIDEO_FPS), window_size=127, batch_size=5)
     fig = plt.figure(figsize=(16, 9))
     ax = fig.add_subplot()
-    ax.imshow(r[0])
+    ax.imshow(r[0].clip(0, 1))
     ax.set_title("Code Image 0")
     ax.set_xlabel("Width")
     ax.set_ylabel("Height")

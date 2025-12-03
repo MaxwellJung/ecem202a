@@ -50,11 +50,11 @@ def load_image(image_path):
 
 
 def write_video(video_array, video_path='out/y.mp4', fps=30, gamma=1):
+    video_array = video_array.clip(min=0, max=1)
+    video_array = (255*(video_array**(1/gamma))).astype(np.uint8)
     out = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (video_array.shape[2], video_array.shape[1]), True)
-    for frame in (255*(video_array**(1/gamma))).clip(min=0, max=255):
-        rgb_frame = frame.astype(np.uint8)
-        bgr_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
-        out.write(bgr_frame)
+    for frame in video_array:
+        out.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
     out.release()
     print(f'Saved video to {video_path}')
 
