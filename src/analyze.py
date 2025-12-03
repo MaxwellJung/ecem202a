@@ -49,7 +49,7 @@ def main():
 
     # bilateral filter
     print("Applying temporal bilateral filter")
-    y = apply_temporal_bilateral_filter(y, spatial_sigma=2.0, range_sigma=0.05, window_size=11)
+    y = apply_temporal_bilateral_filter(y, spatial_sigma=0.5, range_sigma=0.03, window_size=5)
 
     print(f"{y.shape=}")
     print(f"{c.shape=}")

@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.lib.stride_tricks import sliding_window_view
 
-def bilateral_filter_1d(signal, spatial_sigma=2.0, range_sigma=0.05, window_size=11):
+def bilateral_filter_1d(signal, spatial_sigma, range_sigma, window_size):
     """
     Bilateral filter for 1D temporal signals to reduce motion artifacts
     
@@ -37,7 +37,7 @@ def bilateral_filter_1d(signal, spatial_sigma=2.0, range_sigma=0.05, window_size
     return filtered_signal
 
 
-def apply_temporal_bilateral_filter(y, spatial_sigma=2.0, range_sigma=0.05, window_size=11):
+def apply_temporal_bilateral_filter(y, spatial_sigma, range_sigma, window_size):
     """
     Apply bilateral filter to every pixel in y
     """
