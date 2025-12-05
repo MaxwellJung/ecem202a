@@ -1,6 +1,7 @@
-"""
-filters.py
-Collection of filters.
+"""Collection of filters.
+
+Usage:
+    from utils.filters import apply_temporal_bilateral_filter
 """
 
 import cv2
@@ -9,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.lib.stride_tricks import sliding_window_view
 
-def bilateral_filter_1d(signal, spatial_sigma=2.0, range_sigma=0.05, window_size=11):
+def bilateral_filter_1d(signal, spatial_sigma, range_sigma, window_size):
     """
     Bilateral filter for 1D temporal signals to reduce motion artifacts
     
@@ -34,3 +35,15 @@ def bilateral_filter_1d(signal, spatial_sigma=2.0, range_sigma=0.05, window_size
     filtered_signal = np.sum(spatial_weights * range_weights * signal_windows, axis=1) / np.sum(spatial_weights * range_weights, axis=1)
 
     return filtered_signal
+
+
+def apply_temporal_bilateral_filter(y, spatial_sigma, range_sigma, window_size):
+    """
+    Apply bilateral filter to every pixel in y
+    """
+    filtered_y = np.apply_along_axis(
+        bilateral_filter_1d, 1, 
+        y.reshape((y.shape[0],y.shape[1]*y.shape[2]*y.shape[3])),
+        spatial_sigma, range_sigma, window_size).reshape((y.shape[0],y.shape[1],y.shape[2],y.shape[3]))
+
+    return filtered_y

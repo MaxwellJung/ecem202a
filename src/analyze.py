@@ -8,9 +8,9 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 import matplotlib.pyplot as plt
 import torch
-import cv2
 from scipy.signal import resample
-from utils.filters import bilateral_filter_1d
+from utils.filters import apply_temporal_bilateral_filter
+from utils.video import load_video, write_video, export_frame
 
 # Check if GPU is available (CUDA for NVIDIA, MPS for Apple Silicon)
 if torch.cuda.is_available():
@@ -26,26 +26,17 @@ def main():
     # Load data
     ###############################################################################
 
-    C_ARRAY_FILE = 'in/irl/c.npy'
+    C_ARRAY_FILE = 'in/irl/c2/c.npy'
     print(f'Loading NCI array {C_ARRAY_FILE}')
     c = np.load(C_ARRAY_FILE)
     C_SAMPLE_RATE = 30
 
-    Y_VIDEO_FILE = 'in/irl/iphone/y2.MOV'
+    # Y_VIDEO_FILE = 'in/irl/iphone/38.mov'
+    Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited.mp4'
+    # Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited_simple.mp4'
     print(f'Loading video file {Y_VIDEO_FILE}')
-    y, VIDEO_FPS = load_video(Y_VIDEO_FILE)
+    y, VIDEO_FPS = load_video(Y_VIDEO_FILE, downscale_factor=1, gamma_correction=2.2)
     Y_SAMPLE_RATE = VIDEO_FPS
-
-    # Simulate malicious video cut
-    y = np.concatenate((y[:y.shape[0]//4], y[2*y.shape[0]//4:]))
-    # Simulate malicious photoshop (edit in a grey square in the middle)
-    y[0:y.shape[0]//8, y.shape[1]//4:y.shape[1]//2, y.shape[2]//4:y.shape[2]//2] = 128
-
-    # export edited video
-    out = cv2.VideoWriter('out/y_edited.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (y.shape[2], y.shape[1]), True)
-    for frame in (y).clip(min=0, max=255):
-        out.write(frame.astype(np.uint8))
-    out.release()
 
     ###############################################################################
     # Pre-processing
@@ -56,45 +47,22 @@ def main():
     print(f'Resampling c to {C_SAMPLE_RATE} Hz')
     c = resample(c, int(len(c)*(Y_SAMPLE_RATE/C_SAMPLE_RATE)))
 
-    # downscale video
-    DOWNSCALE_FACTOR = 4
-    y = y[:, ::DOWNSCALE_FACTOR, ::DOWNSCALE_FACTOR, :]
-
-    # linear gamma correction
-    GAMMA = 2.2
-    print(f'Undoing gamma={GAMMA} correction')
-    y = (y/255)**GAMMA
-
     # bilateral filter
     print("Applying temporal bilateral filter")
-    y = apply_temporal_bilateral_filter(y, spatial_sigma=2.0, range_sigma=0.05, window_size=11)
+    y = apply_temporal_bilateral_filter(y, spatial_sigma=0.5, range_sigma=0.03, window_size=5)
 
     print(f"{y.shape=}")
     print(f"{c.shape=}")
+
+    # export pre-processed video
+    write_video(y, 'out/y_pre_processed.mp4', VIDEO_FPS)
 
     ###############################################################################
     # Plots for debugging
     ###############################################################################
 
-    fig = plt.figure(figsize=(16, 9))
-    ax = fig.add_subplot()
-    ax.imshow(y[0])
-    ax.set_title("Y Frame 0")
-    ax.set_xlabel("Width")
-    ax.set_ylabel("Height")
-    fig.savefig("out/y_frame0.png")
-    print("Saved plot out/y_frame0.png")
-    plt.close(fig)
-
-    fig = plt.figure(figsize=(16, 9))
-    ax = fig.add_subplot()
-    ax.imshow(y[1])
-    ax.set_title("Y Frame 1")
-    ax.set_xlabel("Width")
-    ax.set_ylabel("Height")
-    fig.savefig("out/y_frame1.png")
-    print("Saved plot out/y_frame1.png")
-    plt.close(fig)
+    export_frame(y, 0, 'out/y_frame0.png')
+    export_frame(y, 1, 'out/y_frame1.png')
 
     fig = plt.figure(figsize=(16, 9))
     ax = fig.add_subplot()
@@ -162,12 +130,23 @@ def main():
     # Start analysis
     ###############################################################################
 
-    plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE, output_path="out/align-mat.png")
+    align_mat = get_alignment_matrix(y, c)
+    y_to_c = align_mat.argmax(axis=0)
+    c_index_start = np.min(y_to_c)
+    c_index_end = np.max(y_to_c) + 1
+    cropped_align_mat = align_mat[c_index_start:c_index_end]
+    cropped_extent=[
+        (0-0.5)/Y_SAMPLE_RATE, 
+        (len(y)-0.5)/Y_SAMPLE_RATE, 
+        (c_index_start-0.5)/C_SAMPLE_RATE, 
+        (c_index_end-0.5)/C_SAMPLE_RATE
+    ]
+    plot_alignment_matrix(cropped_align_mat, cropped_extent, output_path="out/align-mat.png")
 
-    r = calculate_r(y, c, r_start=0, r_end=int(30*VIDEO_FPS), window_size=127, batch_size=5)
+    r = calculate_r(y, c, y_to_c=y_to_c, r_start=0, r_end=int(30*VIDEO_FPS), window_size=127, batch_size=5)
     fig = plt.figure(figsize=(16, 9))
     ax = fig.add_subplot()
-    ax.imshow(r[0])
+    ax.imshow(r[0].clip(0, 1))
     ax.set_title("Code Image 0")
     ax.set_xlabel("Width")
     ax.set_ylabel("Height")
@@ -175,48 +154,10 @@ def main():
     print("Saved code image out/r_estimate.png")
     plt.close(fig)
 
-    out = cv2.VideoWriter('out/r_estimate.mp4', cv2.VideoWriter_fourcc(*'mp4v'), VIDEO_FPS, (r.shape[2], r.shape[1]), True)
-    for frame in (255*r).clip(min=0, max=255):
-        out.write(frame.astype(np.uint8))
-    out.release()
-    print("Saved code video to out/r_estimate.mp4")
+    write_video(r, 'out/r_estimate.mp4', VIDEO_FPS, gamma=2.2)
 
 
-def load_video(video_path):
-    cap = cv2.VideoCapture(video_path)
-
-    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-
-    y = np.empty((frame_count, frame_height, frame_width, 3), np.dtype('uint8'))
-
-    for i in range(frame_count):
-        try:
-            _, frame = cap.read()
-            y[i] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        except Exception as e:
-            pass
-
-    cap.release()
-
-    return y, fps
-
-
-def apply_temporal_bilateral_filter(y, spatial_sigma=2.0, range_sigma=0.05, window_size=11):
-    """
-    Apply bilateral filter to every pixel in y
-    """
-    filtered_y = np.apply_along_axis(
-        bilateral_filter_1d, 1, 
-        y.reshape((y.shape[0],y.shape[1]*y.shape[2]*y.shape[3])),
-        spatial_sigma, range_sigma, window_size).reshape((y.shape[0],y.shape[1],y.shape[2],y.shape[3]))
-
-    return filtered_y
-
-
-def get_alignment_matrix(y, c, window_size=511, use_all_channels=True):
+def get_alignment_matrix(y, c, window_size=511, normalize_channels=True):
     """
     Improved alignment matrix with bilateral filtering option
     
@@ -224,9 +165,9 @@ def get_alignment_matrix(y, c, window_size=511, use_all_channels=True):
         y: Video frames (T, H, W, C)
         c: Code signal
         window_size: Window size for correlation
-        use_all_channels: If True, use all color channels separately
+        normalize_channels: normalize each color channel
     """
-    if use_all_channels:
+    if normalize_channels:
         y_red = np.mean(y[:, :, :, 0], axis=(1, 2))
         y_green = np.mean(y[:, :, :, 1], axis=(1, 2))
         y_blue = np.mean(y[:, :, :, 2], axis=(1, 2))
@@ -268,70 +209,60 @@ def get_alignment_matrix(y, c, window_size=511, use_all_channels=True):
     return align_mat
 
 
-def plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE, 
-                                 title="Alignment Matrix",
-                                 output_path="out/align-mat-styled.png",
-                                 use_log_scale=False,
-                                 brighten_path=True):
+def plot_alignment_matrix(
+        mat,
+        mat_extent,
+        title="Alignment Matrix",
+        output_path="out/align-mat-styled.png",
+        use_log_scale=False,
+        brighten_path=True):
     """
     Plot alignment matrix with enhanced visualization similar to reference image
     
     Args:
-        y: Video frames
-        c: Code signal
-        Y_SAMPLE_RATE: Video sample rate (fps)
-        C_SAMPLE_RATE: Code signal sample rate
+        mat: Alignment matrix
+        mat_extent: Alignment matrix axis
         title: Plot title
         output_path: Where to save the plot
         use_log_scale: Apply log scaling to enhance weak signals
         brighten_path: Highlight the strongest alignment path
     """
-    align_mat = get_alignment_matrix(y, c)
-    y_to_c = align_mat.argmax(axis=0)
-    c_index_start = np.min(y_to_c)
-    c_index_end = np.max(y_to_c) + 1
-    cropped_align_mat = align_mat[c_index_start:c_index_end]
-    
+
     if use_log_scale:
         # Apply log scaling to enhance weaker signals
-        cropped_align_mat_vis = np.log10(cropped_align_mat - cropped_align_mat.min() + 1)
+        align_mat_vis = np.log10(mat - mat.min() + 1)
     else:
-        cropped_align_mat_vis = cropped_align_mat.copy()
+        align_mat_vis = mat.copy()
     
     # Normalize to 0-1
-    mat_min = cropped_align_mat_vis.min()
-    mat_max = cropped_align_mat_vis.max()
-    cropped_align_mat_vis = (cropped_align_mat_vis - mat_min) / (mat_max - mat_min + 1e-6)
+    mat_min = align_mat_vis.min()
+    mat_max = align_mat_vis.max()
+    align_mat_vis = (align_mat_vis - mat_min) / (mat_max - mat_min + 1e-6)
     
     if brighten_path:
-        align_mat_image = np.zeros(cropped_align_mat_vis.shape)
-        best_indices = np.argmax(cropped_align_mat_vis, axis=0)
+        align_mat_image = np.zeros(align_mat_vis.shape)
+        best_indices = np.argmax(align_mat_vis, axis=0)
         
         # Add the strongest correlation values along the path
-        for i in range(cropped_align_mat_vis.shape[1]):
+        for i in range(align_mat_vis.shape[1]):
             idx = best_indices[i]
-            align_mat_image[idx, i] = cropped_align_mat_vis[idx, i]
+            align_mat_image[idx, i] = align_mat_vis[idx, i]
             
             if idx > 0:
-                align_mat_image[idx-1, i] = cropped_align_mat_vis[idx-1, i] * 0.5
-            if idx < cropped_align_mat_vis.shape[0] - 1:
-                align_mat_image[idx+1, i] = cropped_align_mat_vis[idx+1, i] * 0.5
+                align_mat_image[idx-1, i] = align_mat_vis[idx-1, i] * 0.5
+            if idx < align_mat_vis.shape[0] - 1:
+                align_mat_image[idx+1, i] = align_mat_vis[idx+1, i] * 0.5
         
         mat_to_plot = align_mat_image
     else:
-        mat_to_plot = cropped_align_mat_vis
+        mat_to_plot = align_mat_vis
     
     fig, ax = plt.subplots(figsize=(12, 10))
     
     im = ax.imshow(
         mat_to_plot,
         origin='lower',
-        extent=[
-            (0-0.5)/Y_SAMPLE_RATE, 
-            (len(y)-0.5)/Y_SAMPLE_RATE, 
-            (c_index_start-0.5)/C_SAMPLE_RATE, 
-            (c_index_end-0.5)/C_SAMPLE_RATE
-        ],
+        extent=mat_extent,
         cmap='hot',
         interpolation='bilinear'
     )
@@ -349,9 +280,23 @@ def plot_alignment_matrix(y, c, Y_SAMPLE_RATE, C_SAMPLE_RATE,
     plt.close(fig)
 
 
-def calculate_r(y, c, y_to_c=None, r_start=0, r_end=None, window_size=127, batch_size=None):
+def calculate_r(y, c, y_to_c=None, r_start=0, r_end=None, window_size=31, batch_size=None) -> np.ndarray:
+    """ Generate a video of scene reflectance
+
+    Args:
+        y (_type_): Array of video frames
+        c (_type_): code signal array
+        y_to_c (_type_, optional): Mapping from y index to c index
+        r_start (int, optional): Video start frame index
+        r_end (_type_, optional): Video end frame index
+        window_size (int, optional): Window size used to compute reflectance value. Defaults to 127.
+        batch_size (_type_, optional): Number of frames to generate per iteration.
+
+    Returns:
+        np.ndarray: Array of video reflectance frames
+    """
     if y_to_c is None:
-        align_mat = get_alignment_matrix(y, c, window_size=window_size)
+        align_mat = get_alignment_matrix(y, c)
         y_to_c = align_mat.argmax(axis=0)
 
     if r_end is None or r_end > len(y):
