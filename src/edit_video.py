@@ -1,75 +1,33 @@
 """Edit video using python
 
 Usage:
-    python3 ./src/edit_video.py [attack_type]
-    
-Supported attack types:
-    - basic_edit
-    - scaling_attack (default)
-    - region_replace 
+    python3 ./src/edit_video.py
 """
 
-import sys
 import numpy as np
 import cv2
-from pathlib import Path
 from utils.video import load_video, write_video, export_frame, load_image
-
 
 def main():
     Y_VIDEO_FILE = 'in/irl/c2/iphone/38.MOV'
-    
-    # Default attack type
-    attack_type = 'scaling_attack'
-    
-    # Check if user provided attack type argument
-    if len(sys.argv) > 1:
-        attack_type = sys.argv[1].lower()
-    
     print(f'Loading video file {Y_VIDEO_FILE}')
     y, VIDEO_FPS = load_video(Y_VIDEO_FILE, downscale_factor=4, gamma_correction=2.2)
     export_frame(y, 0, 'out/true_y_frame_0.png')
 
-    # Select attack based on user input or default
-    if attack_type == 'basic_edit':
-        print('Applying basic_edit attack...')
-        y_edited = basic_edit(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
-        output_file = 'out/fake_y_basic_edit.mp4'
-    
-    elif attack_type == 'scaling_attack':
-        print('Applying scaling_attack...')
-        y_edited = scaling_attack(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
-        output_file = 'out/fake_y_scaling.mp4'
-    
-    elif attack_type == 'region_replace':
-        print('Applying region_replace_attack...')
-        # Default region replace parameters
-        source_time = (0, 2)           # First 2 seconds as source
-        source_roi = (100, 100, 200, 200)  # 100x100 pixel region
-        target_time = (5, 7)           # Replace frames 5-7 seconds
-        target_roi = (300, 300, 400, 400)  # Target region
-        
-        y_edited = region_replace_attack(
-            y,
-            source_time=source_time,
-            source_roi=source_roi,
-            target_time=target_time,
-            target_roi=target_roi,
-            fps=VIDEO_FPS,
-            swap=False
-        )
-        output_file = 'out/fake_y_region_replace.mp4'
-    
-    else:
-        print(f'Unknown attack type: {attack_type}')
-        print('Supported types: basic_edit, scaling_attack, region_replace')
-        print('Using default (scaling_attack)...')
-        y_edited = scaling_attack(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
-        output_file = 'out/fake_y_scaling.mp4'
+    # y_edited = basic_edit(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
+    # y_edited = scaling_attack(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
+    y_edited = region_replace_attack(
+        y,
+        source_time=(0, y.shape[0]/VIDEO_FPS),
+        source_roi=(0, 0, 100, 100),
+        target_time=(0, y.shape[0]/VIDEO_FPS),
+        target_roi=(100, 0, 200, 100),
+        fps=VIDEO_FPS,
+        swap=False
+    )
 
     # export edited video
-    write_video(y_edited, output_file, VIDEO_FPS, gamma=2.2)
-    print(f'Video saved to {output_file}')
+    write_video(y_edited, 'out/fake_y.mp4', VIDEO_FPS, gamma=2.2)
 
 
 def basic_edit(y, reference=None):
