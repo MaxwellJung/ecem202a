@@ -9,15 +9,16 @@ import cv2
 from utils.video import load_video, write_video, export_frame, load_image
 
 def main():
-    Y_VIDEO_FILE = 'in/irl/c2/iphone/38.MOV'
+    # Y_VIDEO_FILE = 'in/irl/c2/iphone/38.MOV'
+    Y_VIDEO_FILE = 'in/irl/c3/iphone/71.MOV'
     print(f'Loading video file {Y_VIDEO_FILE}')
     y, VIDEO_FPS = load_video(Y_VIDEO_FILE, downscale_factor=4, gamma_correction=2.2)
     export_frame(y, 0, 'out/true_y_frame_0.png')
 
     # y_edited = basic_edit(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
     # y_edited = scaling_attack(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
-    y_edited = sampling_attack(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
-    y_edited = scaling_attack(y_edited, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
+    y_edited = sampling_attack(y, reference=load_image('in/irl/c3/iphone/fake_y_frame_0.png'))
+    y_edited = scaling_attack(y_edited, reference=load_image('in/irl/c3/iphone/fake_y_frame_0.png'))
     # y_edited = region_replace_attack(
     #     y,
     #     source_time=(0, y.shape[0]/VIDEO_FPS),
@@ -128,9 +129,11 @@ def find_closest_color_idx(c, image, proximity='distance'):
     elif proximity == 'angle':
         image_1d_norms = np.linalg.norm(image_1d, axis=0)
         image_1d_norms[image_1d_norms==0] = 1
-
         normalized_image_1d = image_1d/image_1d_norms
-        normalized_c = c/np.linalg.norm(c)
+
+        c_norms = np.linalg.norm(c)
+        c_norms = 1 if c_norms == 0 else c_norms
+        normalized_c = c/c_norms
         
         # Two colors are similar if the angle between the two color vectors are smallest
         # i.e. dot product between two vectors is high

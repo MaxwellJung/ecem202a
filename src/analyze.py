@@ -26,7 +26,7 @@ def main():
     # Load data
     ###############################################################################
 
-    C_ARRAY_FILE = 'in/irl/c2/c.npy'
+    C_ARRAY_FILE = 'in/irl/c3/c.npy'
     print(f'Loading NCI array {C_ARRAY_FILE}')
     c = np.load(C_ARRAY_FILE)
     C_SAMPLE_RATE = 30
@@ -34,7 +34,8 @@ def main():
     # Y_VIDEO_FILE = 'in/irl/iphone/38.mov'
     # Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited_simple.mp4'
     # Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited_mult.mp4'
-    Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited_sample_mult.mp4'
+    # Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited_sample_mult.mp4'
+    Y_VIDEO_FILE = 'in/irl/c3/iphone/71_edited.mp4'
     print(f'Loading video file {Y_VIDEO_FILE}')
     y, VIDEO_FPS = load_video(Y_VIDEO_FILE, downscale_factor=1, gamma_correction=2.2)
     Y_SAMPLE_RATE = VIDEO_FPS
