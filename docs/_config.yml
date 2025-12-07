@@ -1,13 +1,19 @@
-# Use this project as a remote theme for GitHub Pages
-# See the guide here: https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/adding-a-theme-to-your-github-pages-site-using-jekyll
+theme: jekyll-theme-modernist
 show_downloads: true
 
+# google_analytics:[Your Google Analytics tracking ID]
+
 # Name of website
-title: "Lights Under Attack: Stress-Testing Noise-Coded Illumination"
-description: Project for UCLA ECEM202A/CSM213A (Fall 2025)
+title: "EC M202A Project - Lights Under Attack: Stress-Testing Noise-Coded Illumination"
+description: "Course project website for EC M202A / CS M213A (Fall 2025)"
+# For user pages, url should be "https://username.github.io" and baseurl: ""
+# For project pages, url: "https://username.github.io" and baseurl: "/repo-name"
+url: "https://MaxwellJung.github.io"
+baseurl: "/ecem202a" # replace with your project name, e.g., "/ECEM202A_2025Fall_Project_1"
 
-theme: jekyll-theme-minimal
-auto_dark_mode: true
+markdown: kramdown
+kramdown:
+  input: GFM
 
-exclude:
-  - README.md
+# Necessary for GitHub Pages
+plugins: []
