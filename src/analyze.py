@@ -26,14 +26,16 @@ def main():
     # Load data
     ###############################################################################
 
-    C_ARRAY_FILE = 'in/irl/c2/c.npy'
+    C_ARRAY_FILE = 'in/irl/c3/c.npy'
     print(f'Loading NCI array {C_ARRAY_FILE}')
     c = np.load(C_ARRAY_FILE)
     C_SAMPLE_RATE = 30
 
     # Y_VIDEO_FILE = 'in/irl/iphone/38.mov'
-    Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited.mp4'
     # Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited_simple.mp4'
+    # Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited_mult.mp4'
+    # Y_VIDEO_FILE = 'in/irl/c2/iphone/38_edited_sample_mult.mp4'
+    Y_VIDEO_FILE = 'in/irl/c3/iphone/71_edited.mp4'
     print(f'Loading video file {Y_VIDEO_FILE}')
     y, VIDEO_FPS = load_video(Y_VIDEO_FILE, downscale_factor=1, gamma_correction=2.2)
     Y_SAMPLE_RATE = VIDEO_FPS
@@ -144,16 +146,7 @@ def main():
     plot_alignment_matrix(cropped_align_mat, cropped_extent, output_path="out/align-mat.png")
 
     r = calculate_r(y, c, y_to_c=y_to_c, r_start=0, r_end=int(30*VIDEO_FPS), window_size=127, batch_size=5)
-    fig = plt.figure(figsize=(16, 9))
-    ax = fig.add_subplot()
-    ax.imshow(r[0].clip(0, 1))
-    ax.set_title("Code Image 0")
-    ax.set_xlabel("Width")
-    ax.set_ylabel("Height")
-    fig.savefig("out/r_estimate.png")
-    print("Saved code image out/r_estimate.png")
-    plt.close(fig)
-
+    export_frame(r, 0, "out/r_estimate.png")
     write_video(r, 'out/r_estimate.mp4', VIDEO_FPS, gamma=2.2)
 
 

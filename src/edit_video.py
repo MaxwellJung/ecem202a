@@ -9,22 +9,25 @@ import cv2
 from utils.video import load_video, write_video, export_frame, load_image
 
 def main():
-    Y_VIDEO_FILE = 'in/irl/c2/iphone/38.MOV'
+    # Y_VIDEO_FILE = 'in/irl/c2/iphone/38.MOV'
+    Y_VIDEO_FILE = 'in/irl/c3/iphone/71.MOV'
     print(f'Loading video file {Y_VIDEO_FILE}')
     y, VIDEO_FPS = load_video(Y_VIDEO_FILE, downscale_factor=4, gamma_correction=2.2)
     export_frame(y, 0, 'out/true_y_frame_0.png')
 
     # y_edited = basic_edit(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
     # y_edited = scaling_attack(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
-    y_edited = region_replace_attack(
-        y,
-        source_time=(0, y.shape[0]/VIDEO_FPS),
-        source_roi=(0, 0, 100, 100),
-        target_time=(0, y.shape[0]/VIDEO_FPS),
-        target_roi=(100, 0, 200, 100),
-        fps=VIDEO_FPS,
-        swap=False
-    )
+    y_edited = sampling_attack(y, reference=load_image('in/irl/c3/iphone/fake_y_frame_0.png'))
+    y_edited = scaling_attack(y_edited, reference=load_image('in/irl/c3/iphone/fake_y_frame_0.png'))
+    # y_edited = region_replace_attack(
+    #     y,
+    #     source_time=(0, y.shape[0]/VIDEO_FPS),
+    #     source_roi=(0, 0, 100, 100),
+    #     target_time=(0, y.shape[0]/VIDEO_FPS),
+    #     target_roi=(100, 0, 200, 100),
+    #     fps=VIDEO_FPS,
+    #     swap=False
+    # )
 
     # export edited video
     write_video(y_edited, 'out/fake_y.mp4', VIDEO_FPS, gamma=2.2)
@@ -64,12 +67,83 @@ def scaling_attack(y, reference=None):
             y_uint8 = (255*y[0]).astype(np.uint8)
             mask = np.where(y_uint8==0, 1, reference_uint8/y_uint8)
             modified_pixels = np.any(mask!=1, axis=2)
+            y_edited = mask*y
             print(f'Modified {np.count_nonzero(modified_pixels)} pixels')
             # debug
             print(f'{np.transpose(modified_pixels.nonzero())}')
-            y_edited = mask*y
     
     return y_edited
+
+
+def sampling_attack(y, reference=None):
+    if reference is None:
+        pass
+    else:
+        reference_uint8 = (255*reference).astype(np.uint8)
+        y0_uint8 = (255*y[0]).astype(np.uint8)
+        modified_pixels = np.any(np.abs(reference_uint8-y0_uint8) > 0, axis=2)
+
+        desired_colors = reference_uint8[modified_pixels]
+        print("Searching for pixels from original video")
+        new_colors_idx = np.apply_along_axis(find_closest_color_idx, 1, desired_colors, y0_uint8, 'angle')
+        # converts 2d color index ([0, height), [0, width)) into 1d index in the range [0, width*height)
+        new_colors_idx = np.ravel_multi_index(new_colors_idx.T, (y.shape[1], y.shape[2]))
+        # print(new_colors_idx)
+        # print(new_colors_idx.shape)
+
+        y_edited = np.copy(y).transpose(1,2,3,0).reshape(y.shape[1]*y.shape[2], y.shape[3], y.shape[0])
+        print("Replacing pixels")
+        y_edited[modified_pixels.flatten()] = y_edited[new_colors_idx]
+        y_edited = y_edited.reshape(y.shape[1], y.shape[2], y.shape[3], y.shape[0]).transpose(3, 0, 1, 2)
+        print(f'Modified {np.count_nonzero(modified_pixels)} pixels')
+        # debug
+        print(f'{np.transpose(modified_pixels.nonzero())}')
+    
+    return y_edited
+
+
+def find_closest_color_idx(c, image, proximity='distance'):
+    """Find index of pixel in image that's closest in color to c. 
+    Proximity between two colors can be defined as distance between 
+    two colors or angle between two colors.
+
+    Args:
+        c (_type_): (color_channels) shape array
+        image (_type_): (height, width, color_channels) shape array
+        proximity: 'distance' or 'angle'
+
+    Returns:
+        _type_: (height, width)
+    """
+    width = image.shape[1]
+    height = image.shape[0]
+    channels = image.shape[2]
+    image_1d = image.reshape((width*height, channels)).T
+
+    if proximity == 'distance':
+        # Two colors are similar if the distance between the two color vectors are smallest
+        # i.e. |c1-c2|
+        color_proximity = np.linalg.norm(image_1d.T - c, axis=1).reshape(height, width)
+        closest_color_ind = np.unravel_index(np.argmin(color_proximity, axis=None), color_proximity.shape)
+
+    elif proximity == 'angle':
+        image_1d_norms = np.linalg.norm(image_1d, axis=0)
+        image_1d_norms[image_1d_norms==0] = 1
+        normalized_image_1d = image_1d/image_1d_norms
+
+        c_norms = np.linalg.norm(c)
+        c_norms = 1 if c_norms == 0 else c_norms
+        normalized_c = c/c_norms
+        
+        # Two colors are similar if the angle between the two color vectors are smallest
+        # i.e. dot product between two vectors is high
+        color_proximity = np.dot(normalized_image_1d.T, normalized_c).reshape(height, width)
+        closest_color_ind = np.unravel_index(np.argmax(color_proximity, axis=None), color_proximity.shape)
+
+    # print(color_proximity)
+    # print(color_proximity.shape)
+
+    return closest_color_ind
 
 
 def region_replace_attack(frames, source_time, source_roi, target_time, target_roi, fps, swap=False):
