@@ -103,7 +103,7 @@ def generate_nci(f_m: float, f_s: float, size: int) -> NDArray:
         NDArray: Array representing noise coded light intensity over time
     """
 
-    N = 16
+    N = 1024
     C_AMPLITUDE = 1
     # create c by concatenating copies of x's
     c = np.concat([generate_random_signal(f_m, f_s, N) for i in range(int(np.ceil(size/N)))])
