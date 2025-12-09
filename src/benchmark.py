@@ -3,22 +3,23 @@ import numpy as np
 from analyze import analyze_nci_video
 
 def main():
-    window_sizes = [2**i-1 for i in range(5, 10)]
+    # window_sizes = [2**i-1 for i in range(5, 10)]
 
-    # Create a Pool of worker processes
-    # You can specify the number of processes, or it defaults to os.cpu_count()
-    with multiprocessing.Pool(processes=4) as pool:
-        # Apply the 'process_item' function to each element in 'data_list' in parallel
-        # pool.map() returns results in the order of the input iterable
-        results = pool.map(test_align_mat_win_size, window_sizes)
+    # with multiprocessing.Pool(processes=1) as pool:
+    #     results = pool.map(test_align_mat_win_size, window_sizes)
 
-    print(zip(window_sizes, results))
+    # print(zip(window_sizes, results))
+
+    score = test_align_mat_win_size(127)
+    print(score)
+
 
 def test_align_mat_win_size(w):
-
+    print(f'Testing Alignment Matrix Window size {w}')
     align_mat, r = analyze_nci_video(
-                        c_array_file = f'in/irl/c4/c.npy', 
-                        y_video_file = f'in/irl/c4/iphone/38_0.5c.mp4', 
+                        c_array_file = f'in/irl/c4/c_0.5.npy', 
+                        y_video_file = f'in/irl/c4/iphone/38_0.5c.mov', 
+                        downscale = 4,
                         w_a=w,
                         w_r=127)
     

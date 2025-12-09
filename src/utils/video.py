@@ -31,7 +31,7 @@ def load_video(video_path, downscale_factor=1, gamma_correction=1):
         print(f'Downscaling video by {downscale_factor}')
         y = y[:, ::downscale_factor, ::downscale_factor, :]
 
-    y = y/255
+    y = (y/255).astype(np.float32)
 
     # linear gamma correction
     if gamma_correction > 1:
