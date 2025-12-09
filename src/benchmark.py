@@ -10,8 +10,9 @@ def main():
 
     # print(zip(window_sizes, results))
 
-    score = test_align_mat_win_size(127)
-    print(score)
+    for i in range(100, 700, 100):
+        score = test_align_mat_win_size(i+1)
+        print(f'{i+1} {score}')
 
 
 def test_align_mat_win_size(w):
