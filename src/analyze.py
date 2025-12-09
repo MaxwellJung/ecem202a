@@ -22,20 +22,26 @@ else:
 print(f"Using device: {device}")
 
 def main():
+    analyze_nci_video(
+                c_array_file = f'in/irl/c2/c.npy', 
+                y_video_file = f'in/irl/c2/iphone/38_edited_sampling_mult.mp4', 
+                w_a=511,
+                w_r=127)
+
+
+def analyze_nci_video(c_array_file = f'in/irl/c3/c.npy', y_video_file = f'in/irl/c3/iphone/71_edited_sampling_mult.mp4', w_a=511, w_r=127):
     ###############################################################################
     # Load data
     ###############################################################################
-
-    C_ARRAY_FILE = f'in/irl/c3/c.npy'
-    print(f'Loading NCI array {C_ARRAY_FILE}')
-    c = np.load(C_ARRAY_FILE)
+    
+    print(f'Loading NCI array {c_array_file}')
+    c = np.load(c_array_file)
     # c = 0.5*c/np.max(c)
     # np.save(f'out/c', c)
     C_SAMPLE_RATE = 30
 
-    Y_VIDEO_FILE = f'in/irl/c3/iphone/71_edited_sampling_mult.mp4'
-    print(f'Loading video file {Y_VIDEO_FILE}')
-    y, VIDEO_FPS = load_video(Y_VIDEO_FILE, downscale_factor=1, gamma_correction=2.2)
+    print(f'Loading video file {y_video_file}')
+    y, VIDEO_FPS = load_video(y_video_file, downscale_factor=1, gamma_correction=2.2)
     Y_SAMPLE_RATE = VIDEO_FPS
 
     ###############################################################################
@@ -130,7 +136,7 @@ def main():
     # Start analysis
     ###############################################################################
 
-    align_mat = get_alignment_matrix(y, c)
+    align_mat = get_alignment_matrix(y, c, window_size=w_a)
     y_to_c = align_mat.argmax(axis=0)
     c_index_start = np.min(y_to_c)
     c_index_end = np.max(y_to_c) + 1
@@ -143,9 +149,11 @@ def main():
     ]
     plot_alignment_matrix(cropped_align_mat, cropped_extent, output_path="out/align-mat.png")
 
-    r = calculate_r(y, c, y_to_c=y_to_c, r_start=0, r_end=int(30*VIDEO_FPS), window_size=127, batch_size=5)
+    r = calculate_r(y, c, y_to_c=y_to_c, r_start=0, r_end=int(30*VIDEO_FPS), window_size=w_r, batch_size=5)
     export_frame(r, 0, "out/r_estimate.png")
     write_video(r, 'out/r_estimate.mp4', VIDEO_FPS, gamma=2.2)
+
+    return align_mat, r
 
 
 def get_alignment_matrix(y, c, window_size=511, normalize_channels=True):
@@ -271,7 +279,7 @@ def plot_alignment_matrix(
     plt.close(fig)
 
 
-def calculate_r(y, c, y_to_c=None, r_start=0, r_end=None, window_size=31, batch_size=None) -> np.ndarray:
+def calculate_r(y, c, y_to_c=None, r_start=0, r_end=None, window_size=127, batch_size=None) -> np.ndarray:
     """ Generate a video of scene reflectance
 
     Args:
