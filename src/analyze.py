@@ -30,7 +30,7 @@ def main():
                 w_r=127)
 
 
-def analyze_nci_video(c_array_file = f'in/irl/c3/c.npy', y_video_file = f'in/irl/c3/iphone/71_edited_sampling_mult.mp4', downscale=1, w_a=511, w_r=127):
+def analyze_nci_video(c_array_file = f'in/irl/c3/c.npy', y_video_file = f'in/irl/c3/iphone/71_edited_sampling_mult.mp4', downscale=1, w_a=511, w_r=127, C_SAMPLE_RATE=30):
     ###############################################################################
     # Load data
     ###############################################################################
@@ -39,7 +39,7 @@ def analyze_nci_video(c_array_file = f'in/irl/c3/c.npy', y_video_file = f'in/irl
     c = np.load(c_array_file)
     # c = 0.5*c/np.max(c)
     # np.save(f'out/c', c)
-    C_SAMPLE_RATE = 30
+    # C_SAMPLE_RATE = 30
 
     print(f'Loading video file {y_video_file}')
     y, VIDEO_FPS = load_video(y_video_file, downscale_factor=downscale, gamma_correction=2.2)
