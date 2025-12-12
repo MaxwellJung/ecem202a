@@ -223,33 +223,51 @@ This attack combines the Pixel Sampling and Multiplication Attacks. The original
 ---
 
 # **4. Evaluation & Results**  
-An LCD monitor playing our code signal illuminates an indoor scene. Windows were covered with blinds to minimize any uncontrollable light source from outside. The illuminated scene is captured using a smartphone camera (iPhone 17) at 1080p 30fps. The scene was kept static by mounting the camera on a table.
-Figure n shows four random frames from one of the videos we recorded. We recommend checking out the videos on our website to get a full sense of the brightness fluctuations created by NCI.
 
 ### **4.1 Code Signal Extraction Attack Result**  
 
 ### **4.1 Basic Attack (Control) Result**  
 
-[link to 38 basic edit alignment matrix]
-[link to 38 basic edit r_estimate.mp4]
-
-[link to 71 basic edit alignment matrix]
-[link to 71 basic edit r_estimate.mp4]
-
 Alignment Matrix looks good as expected since there was no temporal manipulation.
-Reflectance Estimate marks any edited pixels as black because they don’t contain the NCI watermark.
+Any edited pixels show up as black on the reflectance estimate since they don’t contain the code signal.
+
+| ![38_edited_basic_align-mat.png](./assets/img/38_edited_basic_align-mat.png) | 
+|:--:| 
+| Figure X. Alignment Matrix of 38_edited_basic.mp4 |
+
+| [38_edited_basic_r_estimate.mp4](https://drive.google.com/file/d/1GdGmzv3FNZcKn_uf_RZE2OYVb1N_r4wi/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Reflectance Estimate of 38_edited_basic.mp4 |
+
+| ![71_edited_basic_align-mat.png](./assets/img/71_edited_basic_align-mat.png) | 
+|:--:| 
+| Figure X. Alignment Matrix of 71_edited_basic.mp4 |
+
+| [71_edited_basic_r_estimate.mp4](https://drive.google.com/file/d/1MLhInSva9lvAczQvzLiwuaxXmiU3rYhE/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Reflectance Estimate of 71_edited_basic.mp4 |
 
 
 ### **4.2 Pixel Multiplication Attack Result**  
 
 Alignment Matrix looks good as expected since there was no temporal manipulation.
-Reflectance Estimate incorrectly shows that the edited pixels are illuminated by the code signal. This attack can bypass watermarking.
+None of the edited pixels show up as black; this attack bypasses NCI watermarking.
 
-[link to 38 multiplication edit alignment matrix]
-[link to 38 multiplication edit r_estimate.mp4]
+| ![38_edited_mult_align-mat.png](./assets/img/38_edited_mult_align-mat.png) | 
+|:--:| 
+| Figure X. Alignment Matrix of 38_edited_mult.mp4 |
 
-[link to 71 multiplication edit alignment matrix]
-[link to 71 multiplication edit r_estimate.mp4]
+| [38_edited_mult_r_estimate.mp4](https://drive.google.com/file/d/1w1-8bvPp0EpWTbwP5xwoQG4Rzaiespzy/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Reflectance Estimate of 38_edited_mult.mp4 |
+
+| ![71_edited_mult_align-mat.png](./assets/img/71_edited_mult_align-mat.png) | 
+|:--:| 
+| Figure X. Alignment Matrix of 71_edited_mult.mp4 |
+
+| [71_edited_mult_r_estimate.mp4](https://drive.google.com/file/d/13w5lBSZW_kgxQA9FeZEXYjY8o6U6zM48/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Reflectance Estimate of 71_edited_mult.mp4 |
 
 
 ### **4.3 Pixel Sampling Attack Result**  
