@@ -192,6 +192,7 @@ y &= lr + cr + n\\
 &= lr' + cr' + n'
 \end{align*}$$
 
+
 Multiplication attacks can produce a wide range of new colors with one limitation. Black pixels can’t be modified because no coefficient can raise the pixel value from 0 through multiplication.
 
 ##### **3.3.2.3 Pixel Sampling**  
@@ -228,8 +229,8 @@ This attack combines the Pixel Sampling and Multiplication Attacks. The original
 
 ### **4.1 Basic Attack (Control) Result**  
 
-Alignment Matrix looks good as expected since there was no temporal manipulation.
-Any edited pixels show up as black on the reflectance estimate since they don’t contain the code signal.
+Alignment Matrix looks good as expected since there was no temporal manipulation.  
+Reflectance Estimate detects spatial manipulation by displaying the edited pixels as black.
 
 | ![38_edited_basic_align-mat.png](./assets/img/38_edited_basic_align-mat.png) | 
 |:--:| 
@@ -251,7 +252,7 @@ Any edited pixels show up as black on the reflectance estimate since they don’
 ### **4.2 Pixel Multiplication Attack Result**  
 
 Alignment Matrix looks good as expected since there was no temporal manipulation.
-None of the edited pixels show up as black; this attack bypasses NCI watermarking.
+Reflectance Estimate fails to detect spatial manipulation because none of the edited pixels are shown in black. This attack bypasses watermarking.  
 
 | ![38_edited_mult_align-mat.png](./assets/img/38_edited_mult_align-mat.png) | 
 |:--:| 
@@ -275,6 +276,21 @@ None of the edited pixels show up as black; this attack bypasses NCI watermarkin
 ### **4.4 Pixel Multiplication + Sampling Attack Result**  
 
 ### **4.5 Attack Comparison**  
+
+| [r_estimate_ideal.mp4](https://drive.google.com/file/d/1WP6zTy2rGOlHNjOe0Gv6BwDmAhLKxxbv/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Ideal Reflectance Estimate of 38_edited_mult.mp4 |
+
+| [r_estimate_actual.mp4](https://drive.google.com/file/d/1w1-8bvPp0EpWTbwP5xwoQG4Rzaiespzy/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Actual Reflectance Estimate of 38_edited_mult.mp4 |
+
+To quantify the effectiveness of our attack, we measured the error between the reflectance estimate and a theoretical ideal reflectance estimate. In an ideally working NCI tamper detection algorithm, the reflectance estimate would show any edited pixels as permanently black. We measure deviation of our actual reflectance estimate from ideal using RMSE. The table below lists RMSE values between the ideal reflectance estimate and actual reflectance estimate from the spatial manipulation attacks we tried. Higher RMSE indicates more deviation from ideal and roughly translates to better attack.
+
+|        | Basic   | Multiplication | Sampling | Sampling + Multiplication |
+|--------|---------|----------------|----------|---------------------------|
+| 38.mov | 0.03837 | 0.10109        | 0.06702  | 0.17614                   |
+| 71.mov | 0.01069 | 0.14768        | 0.13987  | 0.13990                   |
 
 ### **4.6 Computational Overhead of Attacks**
 
