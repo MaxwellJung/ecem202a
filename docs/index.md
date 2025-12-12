@@ -144,7 +144,7 @@ If the adversary can somehow obtain the code signal, they can record a new video
 
 #### **3.3.2 Spatial Manipulation Attacks**  
 
-In these attacks, we try to modify the pixels of two original videos 38.mov and 71.mov without breaking their watermarks.
+In these attacks, we try to modify the original videos 38.mov and 71.mov to look like the reference fake images without breaking the NCI watermarks.
 
 | [38.mov](https://drive.google.com/file/d/1M3-XnYjwmPRevkagAO9qwEyS2kSNT7lL/view?usp=drive_link) | 
 |:--:| 
