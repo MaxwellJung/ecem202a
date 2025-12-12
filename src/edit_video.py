@@ -7,18 +7,36 @@ Usage:
 import numpy as np
 import cv2
 from utils.video import load_video, write_video, export_frame, load_image
+from pathlib import Path
 
 def main():
-    # Y_VIDEO_FILE = 'in/irl/c2/iphone/38.MOV'
-    Y_VIDEO_FILE = 'in/irl/c3/iphone/71.MOV'
+    Y_VIDEO_FILE = 'in/irl/c2/iphone/38.MOV'
     print(f'Loading video file {Y_VIDEO_FILE}')
     y, VIDEO_FPS = load_video(Y_VIDEO_FILE, downscale_factor=4, gamma_correction=2.2)
     export_frame(y, 0, 'out/true_y_frame_0.png')
 
-    # y_edited = basic_edit(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
-    # y_edited = scaling_attack(y, reference=load_image('in/irl/c2/iphone/fake_y_frame_0.png'))
-    y_edited = sampling_attack(y, reference=load_image('in/irl/c3/iphone/fake_y_frame_0.png'))
-    y_edited = scaling_attack(y_edited, reference=load_image('in/irl/c3/iphone/fake_y_frame_0.png'))
+    PHOTOSHOP_FILE = 'in/irl/c2/iphone/fake_y_frame_0.png'
+    out_filestem = Path(Y_VIDEO_FILE).stem
+
+    y_edited = cut_video(y)
+    write_video(y_edited, f'out/{out_filestem}_edited_cut.mp4', VIDEO_FPS, gamma=2.2)
+
+    y_edited = overlay_white_rectangle(y)
+    write_video(y_edited, f'out/{out_filestem}_edited_white_rect.mp4', VIDEO_FPS, gamma=2.2)
+
+    # y_edited = basic_edit(y, reference=load_image(PHOTOSHOP_FILE))
+    # write_video(y_edited, f'out/{out_filestem}_edited_basic.mp4', VIDEO_FPS, gamma=2.2)
+
+    # y_edited = scaling_attack(y, reference=load_image(PHOTOSHOP_FILE))
+    # write_video(y_edited, f'out/{out_filestem}_edited_mult.mp4', VIDEO_FPS, gamma=2.2)
+
+    # y_edited = sampling_attack(y, reference=load_image(PHOTOSHOP_FILE), proximity_mode='distance')
+    # write_video(y_edited, f'out/{out_filestem}_edited_sampling.mp4', VIDEO_FPS, gamma=2.2)
+
+    # y_edited = sampling_attack(y, reference=load_image(PHOTOSHOP_FILE), proximity_mode='angle')
+    # y_edited = scaling_attack(y_edited, reference=load_image(PHOTOSHOP_FILE))
+    # write_video(y_edited, f'out/{out_filestem}_edited_sampling_mult.mp4', VIDEO_FPS, gamma=2.2)
+
     # y_edited = region_replace_attack(
     #     y,
     #     source_time=(0, y.shape[0]/VIDEO_FPS),
@@ -29,8 +47,19 @@ def main():
     #     swap=False
     # )
 
-    # export edited video
-    write_video(y_edited, 'out/fake_y.mp4', VIDEO_FPS, gamma=2.2)
+
+def cut_video(y):
+    y_edited = np.copy(y)
+    y_edited = np.concatenate((y_edited[:y_edited.shape[0]//4], y_edited[2*y_edited.shape[0]//4:]))
+
+    return y_edited
+
+
+def overlay_white_rectangle(y):
+    y_edited = np.copy(y)
+    y_edited[:, y_edited.shape[1]//3:2*y_edited.shape[1]//3, y_edited.shape[2]//3:2*y_edited.shape[2]//3, :] = 1
+
+    return y_edited
 
 
 def basic_edit(y, reference=None):
@@ -75,7 +104,7 @@ def scaling_attack(y, reference=None):
     return y_edited
 
 
-def sampling_attack(y, reference=None):
+def sampling_attack(y, reference=None, proximity_mode='distance'):
     if reference is None:
         pass
     else:
@@ -85,7 +114,7 @@ def sampling_attack(y, reference=None):
 
         desired_colors = reference_uint8[modified_pixels]
         print("Searching for pixels from original video")
-        new_colors_idx = np.apply_along_axis(find_closest_color_idx, 1, desired_colors, y0_uint8, 'angle')
+        new_colors_idx = np.apply_along_axis(find_closest_color_idx, 1, desired_colors, y0_uint8, proximity_mode)
         # converts 2d color index ([0, height), [0, width)) into 1d index in the range [0, width*height)
         new_colors_idx = np.ravel_multi_index(new_colors_idx.T, (y.shape[1], y.shape[2]))
         # print(new_colors_idx)
