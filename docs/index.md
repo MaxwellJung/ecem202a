@@ -136,11 +136,13 @@ We first separate the color components of the video to get 3 separate videos. Th
 
 For Alignment Matrix, we chose a window size of 511 because Michael’s paper chose a window size of 450 and we wanted to round up to the nearest power-of-2. For the Reflectance Estimate, we chose a window size of 127 because it empirically produced the best looking results compared to other powers-of-2 sized windows.
 
+
 ## **3.3 Testing & Attacking NCI Setup**  
 
 #### **3.3.1 Code Signal Extraction Attack**  
 
 If the adversary can somehow obtain the code signal, they can record a new video under their coded light to produce a new video that appears authentic. For example, the adversary can recreate the scene from the original video but with some malicious modifications. Assuming the code signal is private to the authors of the original video, the adversary will have to extract it from the video alone.
+
 
 #### **3.3.2 Spatial Manipulation Attacks**  
 
@@ -162,6 +164,7 @@ In these attacks, we try to modify the original videos 38.mov and 71.mov to look
 |:--:| 
 | Figure X. Reference fake image for 71|
 
+
 ##### **3.3.2.1 Basic Overlay**  
 
 | [38_edited_basic.mp4](https://drive.google.com/file/d/1tQ8dilikBapwO6TSMCJP626tAS2nDoLz/view?usp=drive_link) | 
@@ -174,6 +177,7 @@ In these attacks, we try to modify the original videos 38.mov and 71.mov to look
 
 Basic Overlay attack serves as our baseline/control experiment. Overlaying is the simplest form of pixel modification where the original pixel value is simply overwritten with the desired pixel value. In this attack, any pixel that has been edited stays constant throughout the video.
 
+
 ##### **3.3.2.2 Pixel Multiplication**  
 
 | [38_edited_mult.mp4](https://drive.google.com/file/d/1uHHq2SyGAReCZ7RXghau-agn06E7j4AO/view?usp=drive_link) | 
@@ -184,7 +188,7 @@ Basic Overlay attack serves as our baseline/control experiment. Overlaying is th
 |:--:| 
 | Figure X. 71.mov modified using pixel multiplication |
 
-This attack modifies a pixel by multiplying the value of the original pixel by some constant alpha such that the final multiplied value matches the desired pixel value. alpha > 1 will make the pixel brighter while alpha < 1 will make the pixel dimmer. Each color channel can be multiplied independently to produce a wide range of colors. The premise behind this attack is that multiplying a pixel value by alpha is mathematically equivalent to a pixel under the same coded signal but with the reflectance and noise multiplied by alpha.
+Pixel multiplication attack modifies a pixel by multiplying its value with some constant alpha such that the final value matches the desired pixel value. alpha > 1 will make the pixel brighter while alpha < 1 will make the pixel dimmer. Each color channel can be multiplied independently to produce a wide range of colors. The premise behind this attack is that multiplying a pixel value by alpha is mathematically equivalent to a pixel under the same code signal but with the reflectance and noise scaled by alpha.
 
 $$\begin{align*}
 y &= lr + cr + n\\
@@ -193,7 +197,8 @@ y &= lr + cr + n\\
 \end{align*}$$
 
 
-Multiplication attacks can produce a wide range of new colors with one limitation. Black pixels can’t be modified because no coefficient can raise the pixel value from 0 through multiplication.
+Multiplication attacks can produce a wide range of new colors but have one critical flaw. Black pixels can’t be modified because no coefficient can raise the pixel value since 0 times any alpha is still 0.
+
 
 ##### **3.3.2.3 Pixel Sampling**  
 
@@ -205,9 +210,10 @@ Multiplication attacks can produce a wide range of new colors with one limitatio
 |:--:| 
 | Figure X. 71.mov modified using pixel sampling |
 
-This attack modifies a pixel by replacing it with another pixel from the same video that appears closest in color. Color closeness can be defined as the Euclidean distance between the rgb vectors or as the angle difference between the rgb vectors. The premise behind this attack is that duplicating authentic pixels is indistinguishable from having two pixels that coincidentally match in reflectance and noise. Replacing pixels may raise or lower the Global vector y, but the overall shape of the code signal should be preserved.
+Pixel sampling modifies a pixel by replacing it with another pixel from the same video that appears closest to the desired pixel. Color closeness can be defined as either the Euclidean distance between two color vectors or as the angle difference between the two color vectors. The premise behind this attack is that the replaced pixel is authentic and contains the correct watermark, so the replaced pixel and the source pixel should be indistinguishable in the Alignment Matrix and Reflectance Estimate.
 
 The sampling attack tends to look more natural than multiplication attack, but suffers from a limited color palette. The attack cannot generate new colors that are not already in the original video.
+
 
 ##### **3.3.2.4 Pixel Sampling + Multiplication**  
 
@@ -314,7 +320,7 @@ Reflectance Estimate fails to detect spatial manipulation as evidenced by none o
 |:--:| 
 | Figure X. Actual Reflectance Estimate of 38_edited_mult.mp4 |
 
-To quantify the effectiveness of our attack, we measured the error between a theoretical ideal reflectance estimate and the actual reflectance estimate of the edited videos. In an ideally working NCI tamper detection algorithm, the reflectance estimate would show any edited pixels as permanently black. We measure deviation of our actual reflectance estimate from ideal using RMSE. The table below lists RMSE values between the ideal reflectance estimate and actual reflectance estimate from the spatial manipulation attacks we tried. Higher RMSE indicates more deviation from ideal and roughly translates to better attack.
+To quantify the effectiveness of our attacks, we measured the error between a theoretical ideal Reflectance Estimate and the actual Reflectance Estimate of the edited videos. In an ideally working NCI tamper detection algorithm, the reflectance estimate would show any edited pixels as permanently black. We measure deviation of our actual reflectance estimate from ideal using RMSE. The table below lists the RMSE values for each video and attack combination we tried. Higher RMSE indicates more deviation from ideal and roughly translates to better attack. Note however that there are likely better metrics that consider the brightness fluctuations of the edited pixels in the Reflectance Estimate.
 
 |        | Basic   | Multiplication | Sampling | Sampling + Multiplication |
 |--------|---------|----------------|----------|---------------------------|
