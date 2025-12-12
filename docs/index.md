@@ -227,7 +227,7 @@ This attack combines the Pixel Sampling and Multiplication Attacks. The original
 
 ### **4.1 Code Signal Extraction Attack Result**  
 
-### **4.1 Basic Attack (Control) Result**  
+### **4.1 Basic Attack (Control) Results**  
 
 Alignment Matrix looks good as expected since there was no temporal manipulation.  
 Reflectance Estimate detects spatial manipulation by displaying the edited pixels as black.
@@ -249,10 +249,10 @@ Reflectance Estimate detects spatial manipulation by displaying the edited pixel
 | Figure X. Reflectance Estimate of 71_edited_basic.mp4 |
 
 
-### **4.2 Pixel Multiplication Attack Result**  
+### **4.2 Pixel Multiplication Attack Results**  
 
-Alignment Matrix looks good as expected since there was no temporal manipulation.
-Reflectance Estimate fails to detect spatial manipulation because none of the edited pixels are shown in black. This attack bypasses watermarking.  
+Alignment Matrix looks good as expected since there was no temporal manipulation.  
+Reflectance Estimate fails to detect spatial manipulation as evidenced by none of the edited pixels being black. This attack bypasses watermarking.
 
 | ![38_edited_mult_align-mat.png](./assets/img/38_edited_mult_align-mat.png) | 
 |:--:| 
@@ -271,9 +271,38 @@ Reflectance Estimate fails to detect spatial manipulation because none of the ed
 | Figure X. Reflectance Estimate of 71_edited_mult.mp4 |
 
 
-### **4.3 Pixel Sampling Attack Result**  
+### **4.3 Pixel Sampling Attack Results**  
 
-### **4.4 Pixel Multiplication + Sampling Attack Result**  
+Alignment Matrix looks good as expected since there was no temporal manipulation.  
+Reflectance Estimate fails to detect spatial manipulation as evidenced by none of the edited pixels being black. This attack bypasses watermarking.
+
+| ![38_edited_sampling_align-mat.png](./assets/img/38_edited_sampling_align-mat.png) | 
+|:--:| 
+| Figure X. Alignment Matrix of 38_edited_sampling.mp4 |
+
+| [38_edited_sampling_r_estimate.mp4](https://drive.google.com/file/d/1WxLQ1n6yguzkJNoDNSQymLZ2_apyN4gr/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Reflectance Estimate of 38_edited_sampling.mp4 |
+
+| ![71_edited_sampling_align-mat.png](./assets/img/71_edited_sampling_align-mat.png) | 
+|:--:| 
+| Figure X. Alignment Matrix of 71_edited_sampling.mp4 |
+
+| [71_edited_sampling_r_estimate.mp4](https://drive.google.com/file/d/1-m5RIv6IE9D8cJTqp7EHfET1hDmOT4BF/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Reflectance Estimate of 71_edited_sampling.mp4 |
+
+### **4.4 Pixel Multiplication + Sampling Attack Results**   
+
+Alignment Matrix looks good as expected since there was no temporal manipulation.  
+Reflectance Estimate fails to detect spatial manipulation as evidenced by none of the edited pixels being black. This attack bypasses watermarking.
+
+[link to 38 sampling+mult edit alignment matrix]  
+[link to 38 sampling+mult edit r_estimate.mp4]
+
+[link to 71 sampling+mult edit alignment matrix]  
+[link to 71 sampling+mult edit r_estimate.mp4]
+
 
 ### **4.5 Attack Comparison**  
 
