@@ -5,10 +5,10 @@ title: "Lights Under Attack: Stress-Testing Noise-Coded Illumination"
 
 # **Lights Under Attack: Stress-Testing Noise-Coded Illumination**
 
-*A concise, descriptive title for your project.*
+<!-- *A concise, descriptive title for your project.* -->
 
-![Project Banner](./assets/img/banner-placeholder.png)  
-<sub>*(Optional: Replace with a conceptual figure or meaningful image.)*</sub>
+<!-- ![Project Banner](./assets/img/banner-placeholder.png)  
+<sub>*(Optional: Replace with a conceptual figure or meaningful image.)*</sub> -->
 
 ---
 
