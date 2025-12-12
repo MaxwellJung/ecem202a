@@ -285,12 +285,13 @@ Reflectance Estimate fails to detect spatial manipulation because none of the ed
 |:--:| 
 | Figure X. Actual Reflectance Estimate of 38_edited_mult.mp4 |
 
-To quantify the effectiveness of our attack, we measured the error between the reflectance estimate and a theoretical ideal reflectance estimate. In an ideally working NCI tamper detection algorithm, the reflectance estimate would show any edited pixels as permanently black. We measure deviation of our actual reflectance estimate from ideal using RMSE. The table below lists RMSE values between the ideal reflectance estimate and actual reflectance estimate from the spatial manipulation attacks we tried. Higher RMSE indicates more deviation from ideal and roughly translates to better attack.
+To quantify the effectiveness of our attack, we measured the error between a theoretical ideal reflectance estimate and the actual reflectance estimate of the edited videos. In an ideally working NCI tamper detection algorithm, the reflectance estimate would show any edited pixels as permanently black. We measure deviation of our actual reflectance estimate from ideal using RMSE. The table below lists RMSE values between the ideal reflectance estimate and actual reflectance estimate from the spatial manipulation attacks we tried. Higher RMSE indicates more deviation from ideal and roughly translates to better attack.
 
 |        | Basic   | Multiplication | Sampling | Sampling + Multiplication |
 |--------|---------|----------------|----------|---------------------------|
 | 38.mov | 0.03837 | 0.10109        | 0.06702  | 0.17614                   |
 | 71.mov | 0.01069 | 0.14768        | 0.13987  | 0.13990                   |
+
 
 ### **4.6 Computational Overhead of Attacks**
 
