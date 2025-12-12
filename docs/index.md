@@ -14,9 +14,9 @@ title: "Lights Under Attack: Stress-Testing Noise-Coded Illumination"
 
 ## 👥 **Team**
 
-- Maxwell Jung ([email](maxwelljung@ucla.edu), [GitHub](https://github.com/MaxwellJung))  
-- Wentao Chen ([email](wentac4@ucla.edu), [GitHub](https://github.com/wentac4))  
-- Steve Zang ([email](zangbruin007@ucla.edu), [GitHub](https://github.com/SteveZ-Cal))  
+- Maxwell Jung (<maxwelljung@ucla.edu>, [GitHub](https://github.com/MaxwellJung))  
+- Wentao Chen (<wentac4@ucla.edu>, [GitHub](https://github.com/wentac4))  
+- Steve Zang (<zangbruin007@ucla.edu>, [GitHub](https://github.com/SteveZ-Cal))  
 
 ---
 
