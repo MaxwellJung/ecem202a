@@ -136,7 +136,7 @@ For Alignment Matrix, we chose a window size of 511 because Michael’s paper ch
 
 #### **3.3.1 Code Signal Extraction Attack**  
 
-If the adversary can somehow obtain the code signal, they can record a new video under their coded light to produce a new video that appears authentic. For example, the adversary can recreate the scene from the original video but with some malicious modifications. Assuming the code signal is private to the authors of the original video, the adversary will have to extract it from the video alone.
+If the adversary can obtain the code signal, they embed the code signal into a new video and pose it as authentic. For example, the adversary can recreate the scene from the original video but with some malicious modifications. Assuming the code signal is private to the authors of the original video, the adversary will have to extract it from the video alone.
 
 
 #### **3.3.2 Spatial Manipulation Attacks**  
@@ -220,7 +220,8 @@ The sampling attack tends to look more natural than multiplication attack, but s
 |:--:| 
 | Figure X. 71.mov modified using pixel sampling + multiplication |
 
-This attack combines the Pixel Sampling and Multiplication Attacks. The original video is first processed by the Sampling Attack, generating an intermediate version. This output is then fed into the Multiplication Attack to produce the final video. By chaining these methods, the attack mitigates each one's limitations. For instance, the Multiplication Attack cannot scale a pixel with a value of [0,0,0], as multiplying zero yields no change; however, the preceding Sampling Attack can replace such pixels with others from the original frame. Additionally, while sampling reduces the color palette, multiplication expands the range of color values, potentially broadening the overall color spectrum. A noted drawback of this combined approach is some loss of detail.
+This attack combines the Pixel Sampling and Multiplication Attacks. The original video is first processed by the Sampling Attack, generating an intermediate version. This output is then fed into the Multiplication Attack to produce the final video. Combining two attacks has the benefit of complementing each attack’s weakness.  For instance, the Multiplication Attack cannot scale a pixel with a value of [0,0,0], as multiplying zero yields no change; however, the preceding Sampling Attack can replace such pixels with a non-zero pixel from the original frame. Additionally, while sampling suffers from a limited color palette, multiplication expands the range of color values, potentially broadening the overall color spectrum. A noted drawback of this combined approach is some loss of texture and facial detail due to error accumulation from each attack.
+
 
 ---
 
