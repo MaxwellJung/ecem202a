@@ -30,21 +30,16 @@ Noise-Coded Illumination (NCI) is recognized for its potential to provide robust
 
 - [Midterm Checkpoint Slides](https://docs.google.com/presentation/d/1JbTUeoli6I7b-AFx3gMX-jX8nmnHsw5_VxXokDmLpW4/edit?usp=sharing)  
 - [Final Presentation Slides](https://docs.google.com/presentation/d/1eZMDApG3otnrJUzfvpvx2tNXskiX9aYgf0qJhQyEvnM/edit?usp=sharing)
-- [Google Drive](https://drive.google.com/drive/folders/17nz-i6D9IX33ADJJrDn0S3bhEgEBukR5?usp=drive_link)
 
 ---
 
 ## 🎛️ **Media**
 
 - [38_edited_sampling_mult.mp4](https://drive.google.com/file/d/1c9GZ5Hwqy3Y4azfgi7JGC7BIhy3PX_Uh/view?usp=drive_link)
-
 - [38_edited_sampling_mult_r_estimate.mp4](https://drive.google.com/file/d/12FuLq4AwDjDIo_oq-uR6NVYgyKB8aj5g/view?usp=drive_link)
-
 - [71_edited_sampling_mult.mp4](https://drive.google.com/file/d/1hTYSCr0sIotjzVKb_edzKM9ds5cwCqVf/view?usp=drive_link)
-
 - [71_edited_sampling_mult_r_estimate.mp4](https://drive.google.com/file/d/10VK6CmIZM6dbS-KHPcc2woX5X1kfQxee/view?usp=drive_link)
-
-- [Other media](https://drive.google.com/drive/folders/17nz-i6D9IX33ADJJrDn0S3bhEgEBukR5?usp=drive_link)
+- [Google Drive](https://drive.google.com/drive/folders/17nz-i6D9IX33ADJJrDn0S3bhEgEBukR5?usp=drive_link)
 
 ---
 
