@@ -176,11 +176,11 @@ Basic Overlay attack serves as our baseline/control experiment. Overlaying is th
 
 ##### **3.3.2.2 Pixel Multiplication**  
 
-| [38_edited_basic.mp4](https://drive.google.com/file/d/1uHHq2SyGAReCZ7RXghau-agn06E7j4AO/view?usp=drive_link) | 
+| [38_edited_mult.mp4](https://drive.google.com/file/d/1uHHq2SyGAReCZ7RXghau-agn06E7j4AO/view?usp=drive_link) | 
 |:--:| 
 | Figure X. 38.mov modified using pixel multiplication |
 
-| [71_edited_basic.mp4](https://drive.google.com/file/d/17pV09PFJojmHNaAQHVy72yJzt3k1CE2m/view?usp=drive_link) | 
+| [71_edited_mult.mp4](https://drive.google.com/file/d/17pV09PFJojmHNaAQHVy72yJzt3k1CE2m/view?usp=drive_link) | 
 |:--:| 
 | Figure X. 71.mov modified using pixel multiplication |
 
@@ -196,15 +196,28 @@ Multiplication attacks can produce a wide range of new colors with one limitatio
 
 ##### **3.3.2.3 Pixel Sampling**  
 
-[Link to 38_edit_sampling.mp4]
-[Link to 71_edit_sampling.mp4]
-This attack modifies a pixel by replacing it with another pixel from the same video that appears closest in color. Color closeness can be defined as the Euclidean distance between the rgb vectors or as the angle difference between the rgb vectors. The premise behind this attack is that duplicating authentic pixels is indistinguishable from having two pixels that coincidentally match in reflectance and noise. Replacing pixels may raise or lower the Global vector y, but the overall shape of the code signal shoulbe preserved.
+| [38_edited_sampling.mp4](https://drive.google.com/file/d/1Vf3OsPQHeFgiCBzw-Ka6SFFwafe8jNQx/view?usp=drive_link) | 
+|:--:| 
+| Figure X. 38.mov modified using pixel sampling |
+
+| [71_edited_sampling.mp4](https://drive.google.com/file/d/1W_QdovqhxcBQrhdYlYCP6IU2cmQ2yr1f/view?usp=drive_link) | 
+|:--:| 
+| Figure X. 71.mov modified using pixel sampling |
+
+This attack modifies a pixel by replacing it with another pixel from the same video that appears closest in color. Color closeness can be defined as the Euclidean distance between the rgb vectors or as the angle difference between the rgb vectors. The premise behind this attack is that duplicating authentic pixels is indistinguishable from having two pixels that coincidentally match in reflectance and noise. Replacing pixels may raise or lower the Global vector y, but the overall shape of the code signal should be preserved.
 
 The sampling attack tends to look more natural than multiplication attack, but suffers from a limited color palette. The attack cannot generate new colors that are not already in the original video.
 
-##### **3.2.2.3 Pixel Sampling + Multiplication**  
-[Link to 38_edit_sampling_mult.mp4]
-[Link to 71_edit_sampling_mult.mp4]
+##### **3.3.2.4 Pixel Sampling + Multiplication**  
+
+| [38_edited_sampling_mult.mp4](https://drive.google.com/file/d/1c9GZ5Hwqy3Y4azfgi7JGC7BIhy3PX_Uh/view?usp=drive_link) | 
+|:--:| 
+| Figure X. 38.mov modified using pixel sampling + multiplication |
+
+| [71_edited_sampling_mult.mp4](https://drive.google.com/file/d/1hTYSCr0sIotjzVKb_edzKM9ds5cwCqVf/view?usp=drive_link) | 
+|:--:| 
+| Figure X. 71.mov modified using pixel sampling + multiplication |
+
 This attack combines the Pixel Sampling and Multiplication Attacks. The original video is first processed by the Sampling Attack, generating an intermediate version. This output is then fed into the Multiplication Attack to produce the final video. By chaining these methods, the attack mitigates each one's limitations. For instance, the Multiplication Attack cannot scale a pixel with a value of [0,0,0], as multiplying zero yields no change; however, the preceding Sampling Attack can replace such pixels with others from the original frame. Additionally, while sampling reduces the color palette, multiplication expands the range of color values, potentially broadening the overall color spectrum. A noted drawback of this combined approach is some loss of detail.
 
 ---
@@ -217,7 +230,27 @@ Figure n shows four random frames from one of the videos we recorded. We recomme
 
 ### **4.1 Basic Attack (Control) Result**  
 
+[link to 38 basic edit alignment matrix]
+[link to 38 basic edit r_estimate.mp4]
+
+[link to 71 basic edit alignment matrix]
+[link to 71 basic edit r_estimate.mp4]
+
+Alignment Matrix looks good as expected since there was no temporal manipulation.
+Reflectance Estimate marks any edited pixels as black because they don’t contain the NCI watermark.
+
+
 ### **4.2 Pixel Multiplication Attack Result**  
+
+Alignment Matrix looks good as expected since there was no temporal manipulation.
+Reflectance Estimate incorrectly shows that the edited pixels are illuminated by the code signal. This attack can bypass watermarking.
+
+[link to 38 multiplication edit alignment matrix]
+[link to 38 multiplication edit r_estimate.mp4]
+
+[link to 71 multiplication edit alignment matrix]
+[link to 71 multiplication edit r_estimate.mp4]
+
 
 ### **4.3 Pixel Sampling Attack Result**  
 
