@@ -312,11 +312,21 @@ Reflectance Estimate fails to detect spatial manipulation as evidenced by none o
 Alignment Matrix looks good as expected since there was no temporal manipulation.  
 Reflectance Estimate fails to detect spatial manipulation as evidenced by none of the edited pixels being black. This attack bypasses watermarking.
 
-[link to 38 sampling+mult edit alignment matrix]  
-[link to 38 sampling+mult edit r_estimate.mp4]
+| ![38_edited_sampling_mult_align-mat.png](./assets/img/38_edited_sampling_mult_align-mat.png) | 
+|:--:| 
+| Figure X. Alignment Matrix of 38_edited_sampling.mp4 |
 
-[link to 71 sampling+mult edit alignment matrix]  
-[link to 71 sampling+mult edit r_estimate.mp4]
+| [38_edited_sampling_mult_r_estimate.mp4](https://drive.google.com/file/d/12FuLq4AwDjDIo_oq-uR6NVYgyKB8aj5g/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Reflectance Estimate of 38_edited_sampling.mp4 |
+
+| ![71_edited_sampling_mult_align-mat.png](./assets/img/71_edited_sampling_mult_align-mat.png) | 
+|:--:| 
+| Figure X. Alignment Matrix of 71_edited_sampling.mp4 |
+
+| [71_edited_sampling_mult_r_estimate.mp4](https://drive.google.com/file/d/1EY7l4lmPNed0bFg5f--8PENJNnz4PJf6/view?usp=drive_link) | 
+|:--:| 
+| Figure X. Reflectance Estimate of 71_edited_sampling.mp4 |
 
 
 ### **4.5 Attack Comparison**
