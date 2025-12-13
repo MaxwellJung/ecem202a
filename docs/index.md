@@ -365,7 +365,45 @@ T = number of frames, H = height of each frame, W = width of each frame
 
 ### **5.1 Potential Defense Strategy**
 
+Code signal extraction attack works because the code signal is independent of the scene being captured. A possible defense would disallow reusing a single code signal across multiple scenes. Our proposed solution is to make the code signal a direct function of the scene. For example, in our implementation of the code signal, a hash of the last recorded frame can be used as a seed for generating the next 1024 samples of the code signal. Even though extracting the code signal is easier, reusing the extracted code signal is much more difficult because the adversary also has to match the hash of the scene.
+
+The code signal only applies the watermark over time. If the watermark can be applied across space, it could provide some defense against sampling attack. For example, instead of shining a light that appears constant throughout space, a QR-code-like pattern can be projected to the scene. If a pixel is modified using sampling attack, the QR code pattern will become invalid and sampling attack can be detected.
+
+[Defense against pixel multiplication]
+
+
 ### **5.2 Multiple Noise Coded Light Sources**
+
+[Analysis of code extraction attack with multiple light sources]
+
+[Analysis of pixel multiplication attack with multiple light sources]
+
+[Analysis of pixel sampling attack with multiple light sources]
+
+
+### **5.3 What Worked Well and Why**
+
+- Reproduce NCI Pipeline: implemented a workable version of NCI, including alignment matrix generation and reflectance estimation 
+- Code signal extraction attack: Code signal can be extracted even if the amplitude is low. 
+- Pixel sampling+multiplication attack: Some edits using this attack are very hard to perceive by eye. Attack combines the best parts of the two individual attacks.
+
+
+### **5.4 What Didn’t Work**
+
+We couldn’t use LED stage lights as our noise coded light source because the LED could not be dimmed faster than 2 Hz.
+
+
+### **5.5 Limitations of Our Work**
+
+-Static Scenes: all videos are recorded with static scenes, which limits the generalizability of our findings. 
+-Controlled Lighting: attacks are performed under ideal illumination. Real-world conditions with shadows could affect both attack feasibility and NCI’s robustness.
+
+
+### **5.6 What Worked Well and Why**
+
+-Incorporate Motion: test attacks in dynamic scenes with moving objects and cameras
+-Conduct Human Studies: evaluate the perceptual stealth of the attacks through user studies to measure real-world detectability. 
+
 
 ---
 
