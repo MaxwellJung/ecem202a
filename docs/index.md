@@ -26,9 +26,8 @@ Noise-Coded Illumination (NCI) is recognized for its potential to provide robust
 
 ---
 
-## 📑 **Required Submission**
+## 📑 **Documentation**
 
-- [Proposal](./proposal.html)
 - [Midterm Checkpoint Slides](https://docs.google.com/presentation/d/1JbTUeoli6I7b-AFx3gMX-jX8nmnHsw5_VxXokDmLpW4/edit?usp=sharing)  
 - [Final Presentation Slides](https://docs.google.com/presentation/d/1eZMDApG3otnrJUzfvpvx2tNXskiX9aYgf0qJhQyEvnM/edit?usp=sharing)
 - [Final Report](./report.html)

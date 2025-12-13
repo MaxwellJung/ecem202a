@@ -421,19 +421,43 @@ We couldn’t use LED stage lights as our noise coded light source because the L
 
 ## **7.a. Datasets**
 
-Describe each dataset:
-* Source and URL
-* Data format
-* Preprocessing steps
-* Labeling/annotation efforts
+### **Internal NCI Video Dataset**
 
-Include your internal dataset if you collected one.
+**Source and Collection:**
+- **Origin:** Original videos captured in-house using iPhone 13, 15, and 17 devices
+- **Capture Setup:** Scenes illuminated with noise-coded light signal displayed on an LCD monitor; videos recorded at 30 fps in 1080p (1920×1080) resolution
+- **Video Identifiers:** 38.mov, 71.mov (original unmodified NCI videos)
+- **Storage:** Available on [Google Drive](https://drive.google.com/drive/u/1/folders/1GjT8bqGzidTatEPVupToLRYUan-t1r35)
+
+**Data Format:**
+- **Raw Video:** .mov format (Apple ProRes or H.264 codec)
+- **Preprocessed Video:** .mp4 format (H.264 codec) for processed and attacked versions
+- **Code Signal:** Generated in frequency domain with 1024 samples, converted to time domain via IFFT; sampled at 30 Hz (matching video frame rate)
+- **Derived Outputs:** Alignment Matrix (PNG image), Reflectance Estimate (MP4 video), RMSE metrics
+
+---
+
 ## **7.b. Software**
 
-List:
-* External libraries or models
-* Internal modules you wrote
-* Links to repos or documentation
+### **External Libraries**
+
+| Library | Purpose | Usage in Project |
+|---------|---------|------------------|
+| NumPy | Numerical computing, array operations | Code signal generation, video frame manipulation, windowing |
+| OpenCV (cv2) | Video I/O, image processing | Video loading/writing (`load_video`, `write_video`), frame decimation, color conversion (BGR↔RGB) |
+| PyTorch | GPU acceleration | Device detection and computation (CUDA, MPS, CPU) for alignment matrix computation |
+| SciPy | Signal processing | Temporal resampling of code signals (`scipy.signal.resample`) |
+| Matplotlib | Visualization | Plotting alignment matrices, reflectance estimates, and analysis results |
+
+### **Internal Modules**
+
+**Core Analysis & Attack Modules:**
+
+| Module | Functionality |
+|--------|---------------|
+| **`src/simulate_nci.py`** | NCI simulation pipeline for synthetic videos; generates code signals in frequency domain with IFFT, creates illuminated scenes, outputs video frames |
+| **`src/edit_video.py`** | Attack implementation framework; contains basic overlay, pixel multiplication, pixel sampling, and combined attacks|
+| **`src/analyze.py`** | Main tamper detection pipeline; loads NCI video and code signal, applies preprocessing, computes Alignment Matrix and Reflectance Estimate |
 
 ---
 <!-- 
