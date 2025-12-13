@@ -395,7 +395,7 @@ List:
 * Links to repos or documentation
 
 ---
-
+<!-- 
 > [!NOTE] 
 > Read and then delete the material from this line onwards.
 
@@ -421,4 +421,4 @@ List:
 | **Discussion**       | Repeats results; little insight                                | Insightful synthesis; limitations; future directions                                      |
 | **Figures**          | Few or low-quality visuals                                     | High-quality diagrams, plots, qualitative examples, consistent style                      |
 | **Website Presentation** | Minimal formatting; rough writing                           | Clean layout, good formatting, polished writing, hyperlinks, readable organization        |
-| **Reproducibility**  | Missing dataset/software details                               | Clear dataset description, preprocessing, parameters, software environment, instructions   |
+| **Reproducibility**  | Missing dataset/software details                               | Clear dataset description, preprocessing, parameters, software environment, instructions   | -->
