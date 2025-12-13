@@ -362,7 +362,7 @@ Code signal extraction attack works because the code signal is independent of th
 
 The code signal only applies the watermark over time. If the watermark can be applied across space, it could provide some defense against sampling attack. For example, instead of shining a light that appears constant throughout space, a QR-code-like pattern can be projected to the scene. If a pixel is modified using sampling attack, the QR code pattern will become invalid and sampling attack can be detected.
 
-[Defense against pixel multiplication]
+Pixel multiplication attack can be detected by exploiting the fact that noise variance is scaled by alpha^2. In an unmodified video, the variance of all the pixels should be identical because each pixel receives equal noise and noise coded light. If a pixel was modified by multiplication attack, the variance of that pixel will be scaled by a factor of alpha^2 compared to the variance of other pixels.
 
 
 ### **5.2 Multiple Noise Coded Light Sources**
