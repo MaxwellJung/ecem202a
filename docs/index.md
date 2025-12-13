@@ -10,9 +10,7 @@ title: "Lights Under Attack: Stress-Testing Noise-Coded Illumination"
 <!-- ![Project Banner](./assets/img/banner-placeholder.png)  
 <sub>*(Optional: Replace with a conceptual figure or meaningful image.)*</sub> -->
 
-
 ---
-
 
 ## 👥 **Team**
 
@@ -20,26 +18,20 @@ title: "Lights Under Attack: Stress-Testing Noise-Coded Illumination"
 - Wentao Chen (<wentac4@ucla.edu>, [GitHub](https://github.com/wentac4))  
 - Steve Zang (<zangbruin007@ucla.edu>, [GitHub](https://github.com/SteveZ-Cal))  
 
-
 ---
-
 
 ## 📝 **Abstract**
 
 Noise-Coded Illumination (NCI) is recognized for its potential to provide robust forensic authentication for video footage. Existing research has demonstrated its capability to embed and recover temporal watermarks, creating a powerful asymmetry against manipulators. However, there remains limited exploration into the resilience of NCI against informed adversarial attacks, where an attacker with knowledge of the system attempts to bypass detection. This project aims to assess the security of NCI by evaluating several attack strategies under realistic conditions. Our work will implement a baseline NCI pipeline and systematically test adversarial bypass methods, analyzing their success and proposing potential countermeasures to guide the secure deployment of this promising technology.
 
-
 ---
-
 
 ## 📑 **Slides**
 
 - [Midterm Checkpoint Slides](https://docs.google.com/presentation/d/1JbTUeoli6I7b-AFx3gMX-jX8nmnHsw5_VxXokDmLpW4/edit?usp=sharing)  
 - [Final Presentation Slides](https://docs.google.com/presentation/d/1eZMDApG3otnrJUzfvpvx2tNXskiX9aYgf0qJhQyEvnM/edit?usp=sharing)
 
-
 ---
-
 
 ## 🎛️ **Media**
 
@@ -48,7 +40,6 @@ Noise-Coded Illumination (NCI) is recognized for its potential to provide robust
 - [71_edited_sampling_mult.mp4](https://drive.google.com/file/d/1hTYSCr0sIotjzVKb_edzKM9ds5cwCqVf/view?usp=drive_link)
 - [71_edited_sampling_mult_r_estimate.mp4](https://drive.google.com/file/d/10VK6CmIZM6dbS-KHPcc2woX5X1kfQxee/view?usp=drive_link)
 - [Google Drive](https://drive.google.com/drive/folders/17nz-i6D9IX33ADJJrDn0S3bhEgEBukR5?usp=drive_link)
-
 
 ---
 
@@ -72,26 +63,28 @@ With the NCI paper by Michael et al. [1] having been published in June of 2025, 
 We demonstrate three techniques to modify a video while preserving the NCI watermark, which present novel methods to attack NCI that not yet seen any extensive evaluation against the NCI watermarking method:
 
 **Estimate the code signal c from the recorded video y alone, and evaluate how close it is to the real c.** As the code signals are embedded through the modulation of a light source illuminating the video's scene, if such modulation can be detected by those seeking to verify the video's authenticity, then it should also be detectable and then potentially extracted/estimated by an adversary.
+
 **Modify pixel values by multiplying them with some constant $\alpha$.** Multiplying pixel values by a constant should maintain any underlying pixel variations.
+
 **Modify pixel values by replacing the pixel with another pixel from**. Pixels from within the same video should include the same pixel variations coming from underlying code signal; if such pixels are moved to another part of the video, the underlying code signal should still remain intact.
 
 
 ### **1.4 Potential Impact**
 
-If successful, the project will reveal fundamental weaknesses/vulnerabilities in the design of NCI, helping to provide a more robust understanding of what use-cases may be more suitable for as opposed to use-cases that it may not be well suited to handle, and; highlighting current aspects/limitations of NCI that can be improved on to enhance its robustness; and/or potentially prompt the development of even more robust, novel watermarking schemes, from the insights gained here.
+If successful, the project will reveal fundamental vulnerabilities in the design of NCI. The findings of this project will hopefully improve future iterations of NCI.
 
 
 ### **1.5 Challenges**
 
 Technical Challenges:
 
-1. staging light setup
-2. reproduce NCI pipeline
+1. Staging light setup
+2. Reproducing NCI pipeline
 
 Methodological Challenges:
 
-1. come up with attack methods
-2. verify those attack works
+1. Devising attack methods
+2. Confirming attack success
 
 
 ### **1.6 Metrics of Success**
@@ -100,9 +93,7 @@ Methodological Challenges:
 2. RMSE between ideal Reflectance Estimate and actual Reflectance Estimate.
 3. Time and resources required to execute the attack: computational cost (in seconds) and hardware/software resources needed to generate adversarial edits.
 
-
 ---
-
 
 # **2. Related Work**
 
@@ -113,7 +104,6 @@ One such family of techniques are singular value decomposition (SVD)-based water
 Frame-by-frame video watermarking techniques such as spread-spectrum (SS)-based techniques [5], where noise-like signals generated from a key are embedded into the video, have also shown promise [6], but have also been found to be susceptible to attacks [7]. For example, SS-based watermarking schemes where each frame gets a different, pseudorandom watermark are susceptible to Temporal Frame Averaging (TFA) attacks, where adjacent frames are averaged in order to remove watermarking [7]. In fact, Doerr and Dugelay [7] show that even when this scheme is enhanced to prevent TFA attacks, such that the scheme now randomly chooses a watermark for each from from a finite set of orthonormal watermarks and the watermark detector checks for the presence of all watermarks in the set, a new, more sophisticated Watermark Estimation Clusters Remodulation (WECR) attack can still successfully remove the watermark.
 
 Especially as Michael et al. [1] themselves assert that the NCI watermarking technique is closely related to direct sequence spread spectrum techniques to spread signal transmission over broad frequency bands through modulation with pseudorandom noise, the introduction of this novel watermarking technique brings along with it a gap in understanding of its robustness and vulnerability to potential adversarial attacks, which, should it be able to verify originality and prevent tampering of recorded videos in critical, high-stakes scenarios such those presented by the authors (such as political campaigning), must be comprehensively evaluated.
-
 
 ---
 
@@ -246,7 +236,6 @@ The sampling attack tends to look more natural than multiplication attack, but s
 
 This attack combines the Pixel Sampling and Multiplication Attacks. The original video is first processed by the Sampling Attack, generating an intermediate version. This output is then fed into the Multiplication Attack to produce the final video. Combining two attacks has the benefit of complementing each attack’s weakness.  For instance, the Multiplication Attack cannot scale a pixel with a value of [0,0,0], as multiplying zero yields no change; however, the preceding Sampling Attack can replace such pixels with a non-zero pixel from the original frame. Additionally, while sampling suffers from a limited color palette, multiplication expands the range of color values, potentially broadening the overall color spectrum. A noted drawback of this combined approach is some loss of texture and facial detail due to error accumulation from each attack.
 
-
 ---
 
 # **4. Evaluation & Results**
@@ -359,8 +348,6 @@ T = number of frames, H = height of each frame, W = width of each frame
 | Pixel Multiplication          | `O(H·W)`                |
 | Pixel Sampling                | `O((H·W)²)`             |
 | Pixel Sampling + Multiplication | `O((H·W)² + H·W)`     |
-
-
 
 ---
 
