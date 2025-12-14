@@ -192,11 +192,15 @@ Basic Overlay attack serves as our baseline/control experiment. Overlaying is th
 
 Pixel multiplication attack modifies a pixel by multiplying its value with some constant alpha such that the final value matches the desired pixel value. alpha > 1 will make the pixel brighter while alpha < 1 will make the pixel dimmer. Each color channel can be multiplied independently to produce a wide range of colors. The premise behind this attack is that multiplying a pixel value by alpha is mathematically equivalent to a pixel under the same code signal but with the reflectance and noise scaled by alpha.
 
-$$\begin{align*}
+<div>
+\[
+\begin{aligned}
 y &= lr + cr + n\\
 \alpha y &= l(\alpha r) + c(\alpha r) + \alpha n\\
 &= lr' + cr' + n'
-\end{align*}$$
+\end{aligned}
+\]
+</div>
 
 
 Multiplication attacks can produce a wide range of new colors but have one critical flaw. Black pixels can’t be modified because no coefficient can raise the pixel value since 0 times any alpha is still 0.
@@ -459,6 +463,10 @@ We couldn’t use LED stage lights as our noise coded light source because the L
 ## **7.c. ESP32 LED Lamp setup**
 
 We initially tried to use an [LED Bay Light](https://a.co/d/5SBchFZ) as our noise coded light source, but we couldn't modulate the brightness faster than 2 Hz. We used an ESP32 to generate the code signal in real-time using the IFFT method covered in section 3.1. The code signal is exported to SD card as a binary file to be used by the tamper detection algorithm. After generating the code signal, the signal is converted into 3.3V 120 Hz PWM whose duty cycle changes at 30 Hz according to the code signal value. The LED brightness is controlled by 0~10V analog signal, so the 3.3V PWM was converted to 10V analog using a [converter circuit](https://a.co/d/gyxr8BR). The ESP32 code can be found in `esp-nci/main` directory.
+
+<script type="text/javascript" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 
 ---
 <!-- 
