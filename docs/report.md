@@ -59,7 +59,7 @@ We demonstrate three techniques to modify a video while preserving the NCI water
 
 **Modify pixel values by multiplying them with some constant $\alpha$.** Multiplying pixel values by a constant should maintain any underlying pixel variations.
 
-**Modify pixel values by replacing the pixel with another pixel from**. Pixels from within the same video should include the same pixel variations coming from underlying code signal; if such pixels are moved to another part of the video, the underlying code signal should still remain intact.
+**Modify pixel values by replacing the pixel with another pixel from the same video**. Pixels from within the same video should include the same pixel variations coming from underlying code signal; if such pixels are moved to another part of the video, the underlying code signal should still remain intact.
 
 
 ### **1.4 Potential Impact**
