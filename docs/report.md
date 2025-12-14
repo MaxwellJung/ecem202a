@@ -235,7 +235,7 @@ This attack combines the Pixel Sampling and Multiplication Attacks. The original
 
 ### **4.1 Code Signal Extraction Attack Result**
 
-### **4.1 Basic Attack (Control) Results**
+### **4.2 Basic Attack (Control) Results**
 
 Alignment Matrix looks good as expected since there was no temporal manipulation.  
 Reflectance Estimate detects spatial manipulation by displaying the edited pixels as black.
@@ -257,7 +257,7 @@ Reflectance Estimate detects spatial manipulation by displaying the edited pixel
 | Figure X. Reflectance Estimate of 71_edited_basic.mp4 |
 
 
-### **4.2 Pixel Multiplication Attack Results**
+### **4.3 Pixel Multiplication Attack Results**
 
 Alignment Matrix looks good as expected since there was no temporal manipulation.  
 Reflectance Estimate fails to detect spatial manipulation as evidenced by none of the edited pixels being black. This attack bypasses watermarking.
@@ -279,7 +279,7 @@ Reflectance Estimate fails to detect spatial manipulation as evidenced by none o
 | Figure X. Reflectance Estimate of 71_edited_mult.mp4 |
 
 
-### **4.3 Pixel Sampling Attack Results**
+### **4.4 Pixel Sampling Attack Results**
 
 Alignment Matrix looks good as expected since there was no temporal manipulation.  
 Reflectance Estimate fails to detect spatial manipulation as evidenced by none of the edited pixels being black. This attack bypasses watermarking.
@@ -300,7 +300,7 @@ Reflectance Estimate fails to detect spatial manipulation as evidenced by none o
 |:--:| 
 | Figure X. Reflectance Estimate of 71_edited_sampling.mp4 |
 
-### **4.4 Pixel Multiplication + Sampling Attack Results**
+### **4.5 Pixel Multiplication + Sampling Attack Results**
 
 Alignment Matrix looks good as expected since there was no temporal manipulation.  
 Reflectance Estimate fails to detect spatial manipulation as evidenced by none of the edited pixels being black. This attack bypasses watermarking.
@@ -322,7 +322,7 @@ Reflectance Estimate fails to detect spatial manipulation as evidenced by none o
 | Figure X. Reflectance Estimate of 71_edited_sampling.mp4 |
 
 
-### **4.5 Attack Comparison**
+### **4.6 Attack Comparison**
 
 | [r_estimate_ideal.mp4](https://drive.google.com/file/d/1WP6zTy2rGOlHNjOe0Gv6BwDmAhLKxxbv/view?usp=drive_link) | 
 |:--:| 
@@ -340,7 +340,7 @@ To quantify the effectiveness of our attacks, we measured the error between a th
 | 71.mov | 0.01069 | 0.14768        | 0.13987  | 0.13990                   |
 
 
-### **4.6 Computational Overhead of Attacks**
+### **4.7 Computational Overhead of Attacks**
 
 T = number of frames, H = height of each frame, W = width of each frame
 
@@ -367,11 +367,9 @@ Pixel multiplication attack can be detected by exploiting the fact that noise va
 
 ### **5.2 Multiple Noise Coded Light Sources**
 
-[Analysis of code extraction attack with multiple light sources]
+Multiple noise coded light sources can defend against our implementation of code signal extraction. We extracted the code signal by averaging the brightness of each frame. However, if there are multiple coded light sources, the same method will extract the average value of all code signals. To extract individual code signals, we would need a function that decomposes an average value into individual components, but since all code signals are uncorrelated, the search space would be too large to accomplish the decomposition reliably.
 
-[Analysis of pixel multiplication attack with multiple light sources]
-
-[Analysis of pixel sampling attack with multiple light sources]
+Multiple noise coded light sources can not defend against pixel multiplication and sampling attack. Even with multiple light sources, multiplying pixel by alpha is equivalent to scaling the reflectance and noise for each individual light source by alpha while keeping the noise code identical. Replacing a pixel illuminated by multiple light sources maintains the NCI watermark of that pixel because the location of the pixel has no effect on the pixel’s authenticity.
 
 
 ### **5.3 What Worked Well and Why**
