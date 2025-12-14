@@ -460,7 +460,7 @@ We couldn’t use LED stage lights as our noise coded light source because the L
 
 ## **7.c. ESP32 LED Lamp setup**
 
-We initially tried to use an [LED Bay Light](https://a.co/d/5SBchFZ) as our noise coded light source, but we couldn't modulate the brightness faster than 2 Hz. We used an ESP32 to generate the code signal in real-time using the same IFFT method covered in section 3.1. We then converted the code signal into 120 Hz PWM whose duty cycle changes at 30 Hz according to the code signal value. The code signal is exported to SD card as a binary file. This binary file can be reimported as numpy array to run the tamper detection algorithm. The ESP32 code can be found in `esp-nci/main` directory.
+We initially tried to use an [LED Bay Light](https://a.co/d/5SBchFZ) as our noise coded light source, but we couldn't modulate the brightness faster than 2 Hz. We used an ESP32 to generate the code signal in real-time using the IFFT method covered in section 3.1. The code signal is exported to SD card as a binary file to be used by the tamper detection algorithm. After generating the code signal, the signal is converted into 3.3V 120 Hz PWM whose duty cycle changes at 30 Hz according to the code signal value. The LED brightness is controlled by 0~10V analog signal, so the 3.3V PWM was converted to 10V analog using a [converter circuit](https://a.co/d/gyxr8BR). The ESP32 code can be found in `esp-nci/main` directory.
 
 ---
 <!-- 
