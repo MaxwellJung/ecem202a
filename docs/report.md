@@ -390,7 +390,7 @@ We couldn’t use LED stage lights as our noise coded light source because the L
 -Controlled Lighting: attacks are performed under ideal illumination. Real-world conditions with shadows could affect both attack feasibility and NCI’s robustness.
 
 
-### **5.6 What Worked Well and Why**
+### **5.6 Future Work**
 
 -Incorporate Motion: test attacks in dynamic scenes with moving objects and cameras
 -Conduct Human Studies: evaluate the perceptual stealth of the attacks through user studies to measure real-world detectability. 
