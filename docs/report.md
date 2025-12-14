@@ -435,8 +435,6 @@ We couldn’t use LED stage lights as our noise coded light source because the L
 - **Code Signal:** Generated in frequency domain with 1024 samples, converted to time domain via IFFT; sampled at 30 Hz (matching video frame rate)
 - **Derived Outputs:** Alignment Matrix (PNG image), Reflectance Estimate (MP4 video), RMSE metrics
 
----
-
 ## **7.b. Software**
 
 ### **External Libraries**
@@ -458,6 +456,11 @@ We couldn’t use LED stage lights as our noise coded light source because the L
 | **`src/simulate_nci.py`** | NCI simulation pipeline for synthetic videos; generates code signals in frequency domain with IFFT, creates illuminated scenes, outputs video frames |
 | **`src/edit_video.py`** | Attack implementation framework; contains basic overlay, pixel multiplication, pixel sampling, and combined attacks|
 | **`src/analyze.py`** | Main tamper detection pipeline; loads NCI video and code signal, applies preprocessing, computes Alignment Matrix and Reflectance Estimate |
+
+
+## **7.c. ESP32 LED Lamp setup**
+
+We initially tried to use an [LED Bay Light](https://a.co/d/5SBchFZ) as our noise coded light source, but we couldn't modulate the brightness faster than 2 Hz. We used an ESP32 to generate the code signal in real-time using the same IFFT method covered in section 3.1. We then converted the code signal into 120 Hz PWM whose duty cycle changes at 30 Hz according to the code signal value. The code signal is exported to SD card as a binary file. This binary file can be reimported as numpy array to run the tamper detection algorithm. The ESP32 code can be found in `esp-nci/main` directory.
 
 ---
 <!-- 
