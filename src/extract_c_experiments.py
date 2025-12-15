@@ -2,7 +2,7 @@
 
 import numpy as np
 from extract_c import extract_and_compare_c
-from analyze import analyze_nci_video
+from modified_analyze import analyze_nci_video
 
 
 def experiment1():
