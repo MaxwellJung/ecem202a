@@ -217,3 +217,4 @@ docs/.sass-cache/
 docs/*
 !docs/_config.yml
 !docs/**/*.md
+!docs/assets
