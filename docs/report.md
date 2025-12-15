@@ -31,6 +31,10 @@ Noise-Coded Illumination (NCI) is recognized for its potential to provide robust
 - [38_edited_sampling_mult_r_estimate.mp4](https://drive.google.com/file/d/12FuLq4AwDjDIo_oq-uR6NVYgyKB8aj5g/view?usp=drive_link)
 - [71_edited_sampling_mult.mp4](https://drive.google.com/file/d/1hTYSCr0sIotjzVKb_edzKM9ds5cwCqVf/view?usp=drive_link)
 - [71_edited_sampling_mult_r_estimate.mp4](https://drive.google.com/file/d/10VK6CmIZM6dbS-KHPcc2woX5X1kfQxee/view?usp=drive_link)
+- [c1/reconstructed/reconstructed_y.mov](https://drive.google.com/file/d/19rvLuILlJcrDHNzORxnlnrnBckVh_-qP/view?usp=sharing)
+- [y2_reconstructed_y_r_estimate.mp4](https://drive.google.com/file/d/1rmmPqn_NFeBwPFbIrErrQkSCdBHMDjPQ/view?usp=sharing)
+- [c4/reconstructed/reconstructed_y.mov](https://drive.google.com/file/d/1AgTltSoaEuGIp08rQf3s8dTQqdm5BdWx/view?usp=sharing)
+- [38_0.0625c_reconstructed_y_r_estimate.mp4](https://drive.google.com/file/d/1bnPNm7V3gvnrn78QdApv8cA8dWsHI145/view?usp=sharing)
 - [Google Drive](https://drive.google.com/drive/folders/17nz-i6D9IX33ADJJrDn0S3bhEgEBukR5?usp=drive_link)
 
 
@@ -382,7 +386,7 @@ To evaluate how this effects the authentication of a video that an adversary fil
 
 | ![38_0.0625c_reconstructed_y_alignmat.png](./assets/img/38_0.0625c_reconstructed_y_alignmat.png) | 
 |:--:| 
-| Figure 34. Alignment Matrix of 4/reconstructed/reconstructed_y.mov, against `true_c` |
+| Figure 34. Alignment Matrix of c4/reconstructed/reconstructed_y.mov, against `true_c` |
 
 | [38_0.0625c_reconstructed_y_r_estimate.mp4](https://drive.google.com/file/d/1bnPNm7V3gvnrn78QdApv8cA8dWsHI145/view?usp=sharing) | 
 |:--:| 
