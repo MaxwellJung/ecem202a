@@ -208,11 +208,11 @@ We again follow the same process of extracting the code signal from the perspect
 
 Here, we present our process going through phase 2 with the video with the lowest code signal amplitude (0.0625), where if we find that the `extracted_c` extracted from this lowest amplitude video, when embedded by an adversary into their own video, still results in alignment matrices and reflectance estimates generated with `true_c` that someone authenticating the video would have expected to come from the original video filmed by the original video author, then this, as we discuss in the Evaluation section (Section 4.1) as well, presents another critical weakness of this NCI watermarking technique, where even at low amplitudes, the code signal can still be extracted/estimated sufficiently close to the original code signal `true_c` such that a video filmed by an adversary that embeds this extracted code signal can still be passed off as authentic when verified through the generation of an alignment matrix and reflectance estimate of the video against the original code signal `true_c`. The video embedded with this `extracted_c`, extracted from the 0.0625 amplitude code signal video, is provided at Figure 13.
 
-| [c2/reconstructed/reconstructed_y.mov](https://drive.google.com/file/d/1AgTltSoaEuGIp08rQf3s8dTQqdm5BdWx/view?usp=sharing) | 
+| [c4/reconstructed/reconstructed_y.mov](https://drive.google.com/file/d/1AgTltSoaEuGIp08rQf3s8dTQqdm5BdWx/view?usp=sharing) | 
 |:--:| 
 | Figure 13. c1/reconstructed/reconstructed_y.mov NCI video with embedded `extracted_c`, extracted from 38_0.0625c.mov, created by an adversary |
 
-Finally, once again, from the perspective of the original author or some other trusted third party that has access to the original, authentic `true_c` and wishes to use it to verify the authenticity of the video, we generate an alignment matrix and reflectance estimate for this adversarial c2/reconstructed/reconstructed_y.mov video against the original `true_c`, and present our results and evaluation of in the Evaluation section under Section 4.1.3.
+Finally, once again, from the perspective of the original author or some other trusted third party that has access to the original, authentic `true_c` and wishes to use it to verify the authenticity of the video, we generate an alignment matrix and reflectance estimate for this adversarial c4/reconstructed/reconstructed_y.mov video against the original `true_c`, and present our results and evaluation of in the Evaluation section under Section 4.1.3.
 
 
 #### **3.3.2 Spatial Manipulation Attacks**
@@ -322,7 +322,7 @@ To quantify this "closeness," we use the Root Mean Square Error (RMSE) between t
 
 $$ RMSE = \sqrt{\frac{\sum_{i=1}^N (c_i - \hat{c}_i)^2}{N}}, $$
 
-where $N$ is the total number of samples of overlap between the original `true_c` and the extracted `extracted_c` (the length of `true_c` $\ge$ the length of `extracted_c`, since the video recording starts at or sometime after the beginning of the `true_c` signal and ends at or sometime before the end of the `true_c` signal), $c_i$ are the $i = 1, 2, ..., N$ samples of `true_c` that overlap with `extracted_c`, and $\hat{c}_i$ are the $i = 1, 2, ..., N$ samples of `extracted_c` that overlap with `true_c`, and we see that we achieve a relatively low RMSE of 0.137713.
+where *N* is the total number of samples of overlap between the original `true_c` and the extracted `extracted_c` (the length of `true_c` ≥ the length of `extracted_c`, since the video recording starts at or sometime after the beginning of the `true_c` signal and ends at or sometime before the end of the `true_c` signal), *cᵢ* are the *i = 1, 2, ..., N* samples of `true_c` that overlap with `extracted_c`, and *ĉᵢ* are the *i = 1, 2, ..., N* samples of `extracted_c` that overlap with `true_c`, and we see that we achieve a relatively low RMSE of 0.137713.
 
 The code that does this comparison between `true_c` and `extracted_c` -- normalizing, aligning, plotting, and calculating RMSE -- is also provided in `src/extract_c.py`.
 
@@ -382,13 +382,13 @@ To evaluate how this effects the authentication of a video that an adversary fil
 
 | ![38_0.0625c_reconstructed_y_alignmat.png](./assets/img/38_0.0625c_reconstructed_y_alignmat.png) | 
 |:--:| 
-| Figure 34. Alignment Matrix of c2/reconstructed/reconstructed_y.mov, against `true_c` |
+| Figure 34. Alignment Matrix of 4/reconstructed/reconstructed_y.mov, against `true_c` |
 
 | [38_0.0625c_reconstructed_y_r_estimate.mp4](https://drive.google.com/file/d/1bnPNm7V3gvnrn78QdApv8cA8dWsHI145/view?usp=sharing) | 
 |:--:| 
-| Figure 35. Reflectance Estimate of c2/reconstructed/reconstructed_y.mov, against `true_c` |
+| Figure 35. Reflectance Estimate of c4/reconstructed/reconstructed_y.mov, against `true_c` |
 
-As can be seen from Figure 34, despite the "smoothing" effect on `extracted_c`, the alignment matrix generated using `true_c` for the c2/reconstructed/reconstructed_y.mov video filmed by the adversary embedded with `extracted_c` appears as would be expected of the original video filmed by the original video author embedded with `true_c`, with a line at unity and no other obvious artifacts. Similarly, as can be seen from Figure 35, despite the "smoothing" effect on `extracted_c`, the reflectance estimate generated using `true_c` for the c2/reconstructed/reconstructed_y.mov video filmed by the adversary embedded with `extracted_c` appears as would be expected of the original video filmed by the original video author embedded with `true_c`, with no obvious black spots in the image that would signify anything out of the ordinary.
+As can be seen from Figure 34, despite the "smoothing" effect on `extracted_c`, the alignment matrix generated using `true_c` for the c4/reconstructed/reconstructed_y.mov video filmed by the adversary embedded with `extracted_c` appears as would be expected of the original video filmed by the original video author embedded with `true_c`, with a line at unity and no other obvious artifacts. Similarly, as can be seen from Figure 35, despite the "smoothing" effect on `extracted_c`, the reflectance estimate generated using `true_c` for the c4/reconstructed/reconstructed_y.mov video filmed by the adversary embedded with `extracted_c` appears as would be expected of the original video filmed by the original video author embedded with `true_c`, with no obvious black spots in the image that would signify anything out of the ordinary.
 
 Thus, even when the amplitude of the code signal embedded into the original NCI video is low, such that the variations in brightness in the scene are barely noticeable if at all as in 38_0.0625c.mov, our attack is successful, where the adversary is still able to successfully extract/estimate an `extracted_c` that is close enough to the original `true_c` such that when embedded into a new video filmed by the adversary, it still yields alignment matrices and reflectance estimates generated with `true_c` that someone authenticating the video would have expected to come from the original video filmed by the original video author, with no indication in the aligment matrix and reflectance estimate that anything is out of the ordinary.
 
@@ -586,7 +586,7 @@ We couldn’t use LED stage lights as our noise coded light source because the L
 **Source and Collection:**
 - **Origin:** Original videos captured in-house using iPhone 13, 15, and 17 devices
 - **Capture Setup:** Scenes illuminated with noise-coded light signal displayed on an LCD monitor; videos recorded at 30 fps in 1080p (1920×1080) resolution
-- **Video Identifiers:** 38.mov, 71.mov; paper_c.mov, y2.mov, 38_0.5c.mov, 38_0.25c.mov, 38_0.125c.mov, 38_0.0625c.mov (original, unmodified NCI videos); c1/reconstructed/reconstructed_y.mov, c2/reconstructed/reconstructed_y.mov (adversary-created NCI videos, with extracted code signal `extracted_c` embeddd into the video, rather than the original `true_c`)
+- **Video Identifiers:** 38.mov, 71.mov; paper_c.mov, y2.mov, 38_0.5c.mov, 38_0.25c.mov, 38_0.125c.mov, 38_0.0625c.mov (original, unmodified NCI videos); c1/reconstructed/reconstructed_y.mov, c4/reconstructed/reconstructed_y.mov (adversary-created NCI videos, with extracted code signal `extracted_c` embeddd into the video, rather than the original `true_c`)
 - **Storage:** Available on [Google Drive](https://drive.google.com/drive/u/1/folders/1GjT8bqGzidTatEPVupToLRYUan-t1r35)
 
 **Data Format:**
